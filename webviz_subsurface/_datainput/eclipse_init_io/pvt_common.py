@@ -115,6 +115,18 @@ class PvxOBase:
         """
         raise NotImplementedError("You must not call any methods of this base class.")
 
+    def density(self, ratio: np.ndarray, pressure: np.ndarray) -> np.ndarray:
+        """Args:
+            ratio: np.ndarray of ratio (key) values the density values are requested for.
+            pressure: np.ndarray of pressure values the density values are requested for.
+
+        Returns:
+            A list of all density values for the given ratio and pressure values.
+
+        Base implementation, raises a NotImplementedError.
+        """
+        raise NotImplementedError("You must not call any methods of this base class.")
+
 
 class PVxx:
     """A base class for PVDx and PVTx"""
@@ -259,8 +271,6 @@ class PVDx(PVxx):
             A list of formation volume factor values corresponding
             to the given list of pressure values.
 
-        Base implementation, raises a NotImplementedError.
-
         """
         # 1 / (1 / B)
         return self.__compute_quantity(pressure, lambda p: 1.0 / self.__fvf_recip(p))
@@ -274,8 +284,6 @@ class PVDx(PVxx):
         Returns:
             A list of viscosity values corresponding
             to the given list of pressure values.
-
-        Base implementation, raises a NotImplementedError.
 
         """
         # (1 / B) / (1 / (B * mu)
@@ -816,6 +824,34 @@ class FluidImplementation:
 
         Returns:
             A string containing the unit symbol of the viscosity.
+
+        Raises a NotImplementedError when called on a base class object.
+
+        """
+        raise NotImplementedError("This method cannot be called from the base class.")
+
+    def density(
+        self, region_index: int, ratio: np.ndarray, pressure: np.ndarray
+    ) -> np.ndarray:
+        """Args:
+            region_index: Index of the requested PVT region
+            ratio: numpy.ndarray of ratio values the data is requested for
+            pressure: A numpy.ndarray of pressure values the data is requested for
+
+        Returns:
+            A list of the density values according to the given values.
+
+        """
+        self.validate_region_index(region_index)
+
+        return self._regions[region_index].density(ratio, pressure)
+
+    def density_unit(self, latex: bool = False) -> str:
+        """Args:
+            latex: True if the unit symbol shall be returned as LaTeX, False if not.
+
+        Returns:
+            A string containing the unit symbol of the density.
 
         Raises a NotImplementedError when called on a base class object.
 

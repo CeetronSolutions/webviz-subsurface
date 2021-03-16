@@ -68,6 +68,8 @@ def filter_pvt_data_frame(
         "VOLUMEFACTOR_UNIT",
         "VISCOSITY",
         "VISCOSITY_UNIT",
+        "DENSITY",
+        "DENSITY_UNIT",
     ]
 
     if not "RATIO" in data_frame.columns:
@@ -80,6 +82,11 @@ def filter_pvt_data_frame(
         data_frame["PRESSURE_UNIT"] = "bar"
     if not "VISCOSITY_UNIT" in data_frame.columns:
         data_frame["VISCOSITY_UNIT"] = "cP"
+    if not "DENSITY_UNIT" in data_frame.columns:
+        data_frame["DENSITY_UNIT"] = "kg/m³"
+
+    if not "DENSITY" in data_frame.columns:
+        data_frame = calculate_densities(data_frame)
 
     data_frame = data_frame[columns]
 
@@ -131,6 +138,47 @@ def filter_pvt_data_frame(
         cleaned_data_frame = cleaned_data_frame.append(ens_merged_dataframe)
 
     return cleaned_data_frame
+
+
+def calculate_densities(data_frame: pd.DataFrame) -> pd.DataFrame:
+    oil_density = data_frame.loc[
+        data_frame["KEYWORD"] == "DENSITY", "OILDENSITY"
+    ].values[0]
+    gas_density = data_frame.loc[
+        data_frame["KEYWORD"] == "DENSITY", "GASDENSITY"
+    ].values[0]
+    water_density = data_frame.loc[
+        data_frame["KEYWORD"] == "DENSITY", "WATERDENSITY"
+    ].values[0]
+    water_compressibility = data_frame.loc[
+        data_frame["KEYWORD"] == "PVTW", "COMPRESSIBILITY"
+    ].values[0]
+
+    def calculate_density(
+        keyword: str, ratio: float, volume_factor: float, pressure: float
+    ) -> float:
+        if keyword == "PVTO":
+            return (oil_density + ratio * gas_density) / volume_factor
+        elif keyword == "PVDO":
+            return oil_density / volume_factor
+        elif keyword == "PVTG":
+            return (gas_density + ratio * oil_density) / volume_factor
+        elif keyword == "PVDG":
+            return gas_density / volume_factor
+        elif keyword == "PVCDO":
+            return 0.0
+        elif keyword == "PVTW":
+            return water_density
+        else:
+            return 0.0
+
+    data_frame["DENSITY"] = data_frame.apply(
+        lambda row: calculate_density(
+            row["KEYWORD"], row["RATIO"], row["VOLUMEFACTOR"], row["PRESSURE"]
+        ),
+        axis=1,
+    )
+    return data_frame
 
 
 @CACHE.memoize(timeout=CACHE.TIMEOUT)
@@ -194,6 +242,8 @@ def load_pvt_dataframe(
         column_pressure_unit: List[str] = []
         column_viscosity: List[float] = []
         column_viscosity_unit: List[str] = []
+        column_density: List[float] = []
+        column_density_unit: List[str] = []
         column_keyword: List[str] = []
 
         ratios: np.ndarray = np.zeros(21)
@@ -244,6 +294,8 @@ def load_pvt_dataframe(
                     column_viscosity_unit.extend(
                         [oil.viscosity_unit() for _ in pressures]
                     )
+                    column_density.extend(region.density(ratios, pressures))
+                    column_density_unit.extend([oil.density_unit() for _ in pressures])
 
                 else:
                     (ratio, pressure) = (
@@ -265,6 +317,8 @@ def load_pvt_dataframe(
                     column_viscosity_unit.extend(
                         [oil.viscosity_unit() for _ in pressure]
                     )
+                    column_density.extend(region.density(ratio, pressure))
+                    column_density_unit.extend([oil.density_unit() for _ in pressure])
 
         if gas:
             if gas.is_wet_gas():
@@ -301,6 +355,9 @@ def load_pvt_dataframe(
                 column_viscosity.extend(region.viscosity(ratio, pressure))
                 column_viscosity_unit.extend([gas.viscosity_unit() for _ in pressure])
 
+                column_density.extend(region.density(ratio, pressure))
+                column_density_unit.extend([gas.density_unit() for _ in pressure])
+
         if water:
             for region_index, region in enumerate(water.regions()):
                 column_pvtnum.extend([region_index + 1 for _ in pressures])
@@ -318,6 +375,8 @@ def load_pvt_dataframe(
                 column_viscosity_unit.extend(
                     [water.viscosity_unit() for _ in pressures]
                 )
+                column_density.extend(region.density(ratio, pressures))
+                column_density_unit.extend([water.density_unit() for _ in pressures])
 
         data_frame = pd.DataFrame(
             {
@@ -330,6 +389,8 @@ def load_pvt_dataframe(
                 "VOLUMEFACTOR_UNIT": column_volume_factor_unit,
                 "VISCOSITY": column_viscosity,
                 "VISCOSITY_UNIT": column_viscosity_unit,
+                "DENSITY": column_density,
+                "DENSITY_UNIT": column_density_unit,
             }
         )
 

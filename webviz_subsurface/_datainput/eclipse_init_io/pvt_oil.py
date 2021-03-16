@@ -66,6 +66,8 @@ class LiveOil(PvxOBase):
         self,
         index_table: int,
         raw: EclPropertyTableRawData,
+        surface_mass_density_oil: float,
+        surface_mass_density_gas: float,
         convert: Tuple[
             Callable[
                 [
@@ -85,10 +87,14 @@ class LiveOil(PvxOBase):
         Args:
             index_table: Index of the PVT table
             raw: Eclipse raw data object
+            surface_mass_density_oil: Surface mass density of oil
+            surface_mass_density_gas: Surface mass density of gas
             convert: Tuple holding a callable and a ConvertUnits object for unit conversions
 
         """
         self.interpolant = PVTx(index_table, raw, convert)
+        self.surface_mass_density_oil = surface_mass_density_oil
+        self.surface_mass_density_gas = surface_mass_density_gas
 
     def formation_volume_factor(
         self, ratio: np.ndarray, pressure: np.ndarray
@@ -114,6 +120,23 @@ class LiveOil(PvxOBase):
         """
         return self.interpolant.viscosity(ratio, pressure)
 
+    def density(self, ratio: np.ndarray, pressure: np.ndarray) -> np.ndarray:
+        """Args:
+            ratio: List of ratio (key) values the density values are requested for.
+            pressure: List of pressure values the density values are requested for.
+
+        Returns:
+            A list of all density values for the given ratio and pressure values.
+
+        """
+        # rho_o = (rho_o,sc + Rs * rho_g,sc) / B_o
+        fvf_oil = self.formation_volume_factor(ratio, pressure)
+        return [
+            (self.surface_mass_density_oil + ratio[i] * self.surface_mass_density_gas)
+            / fvf_oil[i]
+            for i in range(0, len(fvf_oil))
+        ]
+
     def get_keys(self) -> np.ndarray:
         """Returns a list of all primary key values (Rs)"""
         return self.interpolant.get_keys()
@@ -134,6 +157,7 @@ class DeadOil(PvxOBase):
         self,
         table_index: int,
         raw: EclPropertyTableRawData,
+        surface_mass_density_oil: float,
         convert: ConvertUnits,
     ) -> None:
         # pylint: disable=super-init-not-called
@@ -145,10 +169,12 @@ class DeadOil(PvxOBase):
         Args:
             index_table: Index of the PVT table
             raw: Eclipse raw data object
+            surface_mass_density_oil: Surface mass density of oil
             convert: ConvertUnits object for unit conversions
 
         """
         self.interpolant = PVDx(table_index, raw, convert)
+        self.surface_mass_density_oil = surface_mass_density_oil
 
     def formation_volume_factor(
         self, ratio: np.ndarray, pressure: np.ndarray
@@ -173,6 +199,21 @@ class DeadOil(PvxOBase):
 
         """
         return self.interpolant.viscosity(pressure)
+
+    def density(self, ratio: np.ndarray, pressure: np.ndarray) -> np.ndarray:
+        """Args:
+            ratio: Dummy argument, only to conform to interface of base class.
+            pressure: List of pressure values the density values are requested for.
+
+        Returns:
+            A list of all density values for the given ratio and pressure values.
+
+        """
+        # rho_o = rho_o,sc / B_o
+        fvf_oil = self.formation_volume_factor(ratio, pressure)
+        return [
+            self.surface_mass_density_oil / fvf_oil[i] for i in range(0, len(fvf_oil))
+        ]
 
     def get_keys(self) -> np.ndarray:
         """Returns a list of all primary keys.
@@ -288,9 +329,16 @@ class DeadOilConstCompr(PvxOBase):
 
         return self.__exp(x) / self.__fvf_ref
 
-    def surface_mass_density(self) -> float:
-        """Returns: the surface mass density"""
-        return self.__surface_mass_density
+    def density(self, ratio: np.ndarray, pressure: np.ndarray) -> np.ndarray:
+        """Args:
+            ratio: List of ratio (key) values the density values are requested for.
+            pressure: List of pressure values the density values are requested for.
+
+        Returns:
+            A list of all density values for the given ratio and pressure values.
+
+        """
+        return [self.__surface_mass_density for _ in range(0, len(pressure))]
 
     def __recip_fvf_visc(self, p_o: float) -> float:
         """Computes the reciprocal of the product of formation volume factor
@@ -382,7 +430,7 @@ class Oil(FluidImplementation):
         raw: EclPropertyTableRawData,
         unit_system: int,
         is_const_compr: bool,
-        surface_mass_densities: np.ndarray,
+        surface_mass_densities: Tuple[np.ndarray, np.ndarray],
         keep_unit_system: bool = True,
     ):
         """Initializes an Oil object.
@@ -447,6 +495,26 @@ class Oil(FluidImplementation):
         if latex:
             return fr"${unit_system.viscosity().symbol}$"
         return f"{unit_system.viscosity().symbol}"
+
+    def density_unit(self, latex: bool = False) -> str:
+        """Creates and returns a string containing the unit symbol of the density.
+
+        Args:
+            latex: True if the unit symbol shall be returned as LaTeX, False if not.
+
+        Returns:
+            A string containing the unit symbol of the density.
+
+        """
+        unit_system = EclUnits.create_unit_system(
+            self.original_unit_system
+            if self.keep_unit_system
+            else EclUnitEnum.ECL_SI_UNITS
+        )
+
+        if latex:
+            return fr"${unit_system.density().symbol}$"
+        return f"{unit_system.density().symbol}"
 
     def dead_oil_unit_converter(
         self, unit_system: Union[int, EclUnits.UnitSystem]
@@ -577,8 +645,24 @@ class Oil(FluidImplementation):
             # Rs     Po      1/B    1/(B*mu)   d(1/B)/dPo   d(1/(B*mu))/dPo
             #        :       :      :          :            :
             raw,
-            lambda table_index, raw: LiveOil(table_index, raw, cvrt),
+            lambda table_index, raw: LiveOil(
+                table_index,
+                raw,
+                self.surface_mass_densities[0][table_index],
+                self.surface_mass_densities[1][table_index],
+                cvrt,
+            ),
         )
+
+        if len(self.surface_mass_densities[0]) != len(self._regions) or len(
+            self.surface_mass_densities[1]
+        ) != len(self._regions):
+            raise ValueError(
+                (
+                    "The given Eclipse INIT file seems to be broken"
+                    "(number of surface density values does not equal number of PVT regions)."
+                )
+            )
 
     def create_dead_oil(
         self, raw: EclPropertyTableRawData, const_compr: bool, unit_system: int
@@ -604,7 +688,10 @@ class Oil(FluidImplementation):
         cvrt = self.dead_oil_unit_converter(unit_system)
 
         self._regions = self.make_interpolants_from_raw_data(
-            raw, lambda table_index, raw: DeadOil(table_index, raw, cvrt)
+            raw,
+            lambda table_index, raw: DeadOil(
+                table_index, raw, self.surface_mass_densities[0][table_index], cvrt
+            ),
         )
 
     def is_live_oil(self) -> bool:
@@ -691,8 +778,9 @@ class Oil(FluidImplementation):
         start = tab_dims[InitFileDefinitions.TABDIMS_IBPVTO_OFFSET_ITEM] - 1
         raw.data = tab[start : start + num_tab_elements]
 
-        surface_mass_densities = surface_mass_density(
-            ecl_init_file, EclPhaseIndex.Liquid, keep_unit_system
+        surface_mass_densities = (
+            surface_mass_density(ecl_init_file, EclPhaseIndex.Liquid, keep_unit_system),
+            surface_mass_density(ecl_init_file, EclPhaseIndex.Vapour, keep_unit_system),
         )
 
         return Oil(

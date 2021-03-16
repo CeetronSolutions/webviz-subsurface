@@ -174,6 +174,16 @@ class PvtPlot(WebvizPluginABC):
         return ["ENSEMBLE", "PVTNUM"]
 
     @property
+    def plot_options(self) -> List[Tuple[str, str, bool]]:
+        options = [
+            ("Formation Volume Factor", "fvf", True),
+            ("Viscosity", "viscosity", True),
+            ("Density", "density", True),
+            ("Phase Ratio", "ratio", True),
+        ]
+        return options
+
+    @property
     def tour_steps(self) -> List[dict]:
         return [
             {
@@ -307,12 +317,33 @@ class PvtPlot(WebvizPluginABC):
                                 ),
                             ],
                         ),
+                        html.Label(
+                            id=self.uuid("plot_visibility_selector"),
+                            children=[
+                                html.Span("Show plots", style={"font-weight": "bold"}),
+                                dcc.Checklist(
+                                    options=[
+                                        {"label": l, "value": v, "disabled": d}
+                                        for (l, v, d) in self.plot_options
+                                    ],
+                                    value=[
+                                        "fvf",
+                                        "viscosity",
+                                        "density",
+                                        "ratio",
+                                    ],
+                                    labelStyle={"display": "block"},
+                                ),
+                            ],
+                        ),
                     ],
                 ),
                 html.Div(
                     id=self.uuid("graphs"),
-                    style={"flex": "4"},
-                    children=wcc.Graph(id=self.uuid("graph")),
+                    style={"flex": "4", "height": "90vh"},
+                    children=[
+                        wcc.Graph(id=self.uuid("graph"), style={"height": "90vh"}),
+                    ],
                 ),
                 dcc.Store(
                     id=self.uuid("init_callback"), storage_type="session", data=True
@@ -666,6 +697,56 @@ def add_realization_traces(
                     ]
                 )
 
+                traces.extend(
+                    [
+                        {
+                            "type": "scatter",
+                            "x": realization_data_frame.loc[
+                                realization_data_frame[dim_column_name] == set_value
+                            ]["PRESSURE"],
+                            "y": realization_data_frame.loc[
+                                realization_data_frame[dim_column_name] == set_value
+                            ]["DENSITY"],
+                            "xaxis": "x3",
+                            "yaxis": "y3",
+                            "hovertext": hovertext,
+                            "name": group,
+                            "legendgroup": group,
+                            "marker": {
+                                "color": colors.get(
+                                    group, colors[list(colors.keys())[-1]]
+                                )
+                            },
+                            "showlegend": False,
+                        }
+                    ]
+                )
+
+                traces.extend(
+                    [
+                        {
+                            "type": "scatter",
+                            "x": realization_data_frame.loc[
+                                realization_data_frame[dim_column_name] == set_value
+                            ]["PRESSURE"],
+                            "y": realization_data_frame.loc[
+                                realization_data_frame[dim_column_name] == set_value
+                            ]["RATIO"],
+                            "xaxis": "x4",
+                            "yaxis": "y4",
+                            "hovertext": hovertext,
+                            "name": group,
+                            "legendgroup": group,
+                            "marker": {
+                                "color": colors.get(
+                                    group, colors[list(colors.keys())[-1]]
+                                )
+                            },
+                            "showlegend": False,
+                        }
+                    ]
+                )
+
     for group in border_value_pressure:
         traces.extend(
             [
@@ -714,6 +795,8 @@ def plot_layout(
     titles = [
         "{} Formation Volume Factor".format(phase.lower().capitalize()),
         "{} Viscosity".format(phase.lower().capitalize()),
+        "{} Density".format(phase.lower().capitalize()),
+        "{} Phase Ratio".format(phase.lower().capitalize()),
     ]
     layout = {}
     layout.update(theme)
@@ -739,7 +822,29 @@ def plot_layout(
                     "x": 0.5,
                     "xanchor": "center",
                     "xref": "paper",
-                    "y": 0.475,
+                    "y": 0.75,
+                    "yanchor": "bottom",
+                    "yref": "paper",
+                    "font": {"size": 16},
+                },
+                {
+                    "showarrow": False,
+                    "text": titles[2],
+                    "x": 0.5,
+                    "xanchor": "center",
+                    "xref": "paper",
+                    "y": 0.5,
+                    "yanchor": "bottom",
+                    "yref": "paper",
+                    "font": {"size": 16},
+                },
+                {
+                    "showarrow": False,
+                    "text": titles[3],
+                    "x": 0.5,
+                    "xanchor": "center",
+                    "xref": "paper",
+                    "y": 0.25,
                     "yanchor": "bottom",
                     "yref": "paper",
                     "font": {"size": 16},
@@ -757,16 +862,33 @@ def plot_layout(
                 "zeroline": False,
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "matches": "x2",
+                "matches": "x4",
                 "showticklabels": False,
                 "showgrid": True,
             },
             "xaxis2": {
+                "zeroline": False,
+                "anchor": "y2",
+                "matches": "x4",
+                "showticklabels": False,
+                "domain": [0.0, 1.0],
+                "showgrid": True,
+            },
+            "xaxis3": {
+                "automargin": True,
+                "zeroline": False,
+                "anchor": "y3",
+                "domain": [0.0, 1.0],
+                "showticklabels": False,
+                "matches": "x4",
+                "showgrid": True,
+            },
+            "xaxis4": {
                 "automargin": True,
                 "ticks": "",
                 "showticklabels": True,
                 "zeroline": False,
-                "anchor": "y2",
+                "anchor": "y4",
                 "domain": [0.0, 1.0],
                 "title": {
                     "text": fr"Pressure [{data_frame['PRESSURE_UNIT'].iloc[0]}]",
@@ -779,7 +901,7 @@ def plot_layout(
                 "ticks": "",
                 "zeroline": False,
                 "anchor": "x",
-                "domain": [0.525, 1.0],
+                "domain": [0.775, 1.0],
                 "title": {
                     "text": (
                         fr"{phase.lower().capitalize()} Formation Volume Factor "
@@ -794,7 +916,7 @@ def plot_layout(
                 "ticks": "",
                 "zeroline": False,
                 "anchor": "x2",
-                "domain": [0.0, 0.475],
+                "domain": [0.525, 0.725],
                 "title": {
                     "text": (
                         fr"{phase.lower().capitalize()} Viscosity "
@@ -804,7 +926,31 @@ def plot_layout(
                 "type": "linear",
                 "showgrid": True,
             },
-            "height": 800,
+            "yaxis3": {
+                "automargin": True,
+                "ticks": "",
+                "zeroline": False,
+                "anchor": "x3",
+                "domain": [0.275, 0.475],
+                "title": {
+                    "text": (
+                        fr"{phase.lower().capitalize()} Density "
+                        fr"[{data_frame['DENSITY_UNIT'].iloc[0]}]"
+                    )
+                },
+                "type": "linear",
+                "showgrid": True,
+            },
+            "yaxis4": {
+                "automargin": True,
+                "ticks": "",
+                "zeroline": False,
+                "anchor": "x4",
+                "domain": [0.0, 0.225],
+                "title": {"text": (fr"{phase.lower().capitalize()} Phase Ratio")},
+                "type": "linear",
+                "showgrid": True,
+            },
             "margin": {"t": 20, "b": 0},
             "plot_bgcolor": "rgba(0,0,0,0)",
         }
