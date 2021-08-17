@@ -1,4 +1,6 @@
 from typing import List, Optional, Sequence
+import datetime
+
 import numpy as np
 import pandas as pd
 
@@ -56,6 +58,27 @@ class DeltaEnsemble:
 
     def realizations(self) -> List[int]:
         return self._smry["REAL"].unique().tolist()
+
+    def dates(
+        self, realizations: Optional[Sequence[int]] = None
+    ) -> List[datetime.datetime]:
+
+        ensembles = [self._a, self._b]
+
+        if realizations:
+            date_series = self._smry.loc[
+                self._smry["ENSEMBLE"].isin(ensembles)
+                & self._smry["REAL"].isin(realizations),
+                "DATE",
+            ]
+        else:
+            date_series = self._smry.loc[
+                self._smry["ENSEMBLE"].isin(ensembles),
+                "DATE",
+            ]
+
+        unique_date_values = date_series.unique()
+        return unique_date_values
 
     def get_vectors_df(
         self, vector_names: Sequence[str], realizations: Optional[Sequence[int]] = None
