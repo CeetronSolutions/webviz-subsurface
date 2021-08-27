@@ -52,6 +52,7 @@ from .._datainput.from_timeseries_cumulatives import (
     rename_vec_from_cum,
 )
 from .._utils.vector_calculator import (
+    expressions_from_config,
     get_calculated_units,
     get_calculated_vector_df,
     get_expression_from_name,
@@ -115,7 +116,7 @@ class ReservoirSimulationTimeSeries(WebvizPluginABC):
     * `hv`, `vh`, `hvh`, `vhv` and `spline` (regular Plotly options).
 
 **Calculated vector expressions**
-* **`predefined_expressions`:** JSON file with pre-defined expressions
+* **`predefined_expressions`:** yaml file with pre-defined expressions
 
 ---
 
@@ -304,12 +305,14 @@ folder, to avoid risk of not extracting the right data.
         )
 
         # Retreive predefined expressions from configuration
-        self.predefined_expressions: List[ExpressionInfo] = []
-        if predefined_expressions:
-            self.predefined_expressions = webviz_settings.shared_settings[
-                predefined_expressions
-            ]
-
+        self.predefined_expressions_path = webviz_settings.shared_settings[
+            "predefined_expressions"
+        ][predefined_expressions]
+        self.predefined_expressions = expressions_from_config(
+            get_path(self.predefined_expressions_path)
+            if self.predefined_expressions_path
+            else None
+        )
         for expression in self.predefined_expressions:
             valid, message = validate_predefined_expression(
                 expression, self.vector_data
@@ -1261,6 +1264,9 @@ folder, to avoid risk of not extracting the right data.
             functions.extend(self.emodel.webvizstore)
         if self.obsfile:
             functions.append((get_path, [{"path": self.obsfile}]))
+        if self.predefined_expressions_path:
+            print("ee")
+            functions.append((get_path, [{"path": self.predefined_expressions_path}]))
         return functions
 
 
