@@ -1,3 +1,4 @@
+from re import A, S
 from typing import Dict, List, Optional, Set
 
 import pandas as pd
@@ -17,6 +18,10 @@ from ..utils.create_vector_traces_utils import (
     render_hovertemplate,
 )
 from .graph_figure_builder_base import GraphFigureBuilderBase
+
+# TMP
+import datetime
+from ..types.types import Annotation, VectorAnnotation
 
 
 class VectorSubplotBuilder(GraphFigureBuilderBase):
@@ -73,6 +78,8 @@ class VectorSubplotBuilder(GraphFigureBuilderBase):
             )
 
         self._set_keep_uirevision()
+
+        self.add_vector_annotations("", [])
 
         # Set for storing added ensembles
         self._added_ensemble_traces: List[str] = []
@@ -324,6 +331,78 @@ class VectorSubplotBuilder(GraphFigureBuilderBase):
                 )
             }
         )
+
+    def add_vector_annotations(
+        self, vector_name: str, vector_annotations: List[Annotation]
+    ) -> None:
+        annotations = [
+            Annotation(
+                annotation="First Annotation Text", date=datetime.datetime(2018, 1, 2)
+            ),
+            Annotation(
+                annotation="First Annotation Text", date=datetime.datetime(2019, 1, 5)
+            ),
+        ]
+
+        def add_shapes_with_annotation(annotations: List[Annotation]) -> None:
+            for elm in annotations:
+                self._figure.add_shape(
+                    line={"color": "green", "dash": "dash", "width": 3},
+                    type="line",
+                    x0=elm["date"],
+                    x1=elm["date"],
+                    xref="x",
+                    y0=0.0,
+                    y1=1.0,
+                    yref="y domain",  # "paper"
+                    name="Test name",
+                )
+                self._figure.add_annotation(
+                    showarrow=True,
+                    text=elm["annotation"],
+                    align="right",
+                    xref="x",
+                    x=elm["date"],
+                    xanchor="right",
+                    yref="y domain",  # "paper"
+                    y=0.0,
+                    yanchor="bottom",
+                    row=1,
+                    col=1,
+                )
+
+        def add_vertical_trace_after_data(annotations: List[Annotation]) -> None:
+            # NOTE: MUST BE CALLED AFTER ALL DATA IS ADDED!!!!
+
+            # TODO: Must detect which subplot the vector belongs to
+            # i.e. ymin and ymax must come from correct subplot!
+
+            # if self._figure.to_dict().get("data", None) is None:
+            #     return
+
+            # if len(self._figure["data"]) <= 0:
+            #     return
+
+            ymin = min([min(trace["y"]) for trace in self._figure["data"]])
+            ymax = max([max(trace["y"]) for trace in self._figure["data"]])
+
+            for elm in annotations:
+                self._figure.add_scatter(
+                    x=[elm["date"], elm["date"]],
+                    y=[ymin, ymax],
+                    line={"color": "red", "dash": "dot", "width": 1},
+                    mode="lines",
+                    # mode="lines+markers",
+                    hovertemplate="",
+                    hovertext=elm["annotation"],
+                    showlegend=False,
+                    name="Vector 1",  # Utilize vector name
+                    row=2,
+                    col=1,
+                )
+
+        add_shapes_with_annotation(annotations)
+        # add_vertical_trace_after_data(annotations)
 
     #############################################################################
     #

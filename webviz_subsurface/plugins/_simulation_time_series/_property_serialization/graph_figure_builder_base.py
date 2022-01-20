@@ -6,6 +6,9 @@ import plotly.graph_objects as go
 
 from ..types import FanchartOptions, StatisticsOptions
 
+# TMP:
+from ..types.types import Annotation, VectorAnnotation
+
 
 class GraphFigureBuilderBase(abc.ABC):
     """
@@ -132,6 +135,31 @@ class GraphFigureBuilderBase(abc.ABC):
         * vector_observations: dict - Dictionary with observation data for vector
         """
         ...
+
+    # Suggestion 1
+    @abc.abstractmethod
+    def add_vector_annotations(
+        self, vector_name: str, vector_annotations: List[Annotation]
+    ) -> None:
+        """Add traces for vector annotations
+
+        `Input:`
+        * vector_name: str - Vector to add annotations for
+        * vector_annotations: List[Annotation] - List of annotations for vector
+        """
+        ...
+
+    # # Suggestion 2
+    # @abc.abstractmethod
+    # def add_vector_annotations_2(
+    #     self, vector_annotations: List[VectorAnnotation]
+    # ) -> None:
+    #     """Add traces for vector annotations
+
+    #     `Input:`
+    #     * vector_annotations: List[VectorAnnotation] - List of vector annotations
+    #     """
+    #     ...
 
     # ------------------------------------
     #

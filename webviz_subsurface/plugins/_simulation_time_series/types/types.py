@@ -1,10 +1,48 @@
 import sys
 from enum import Enum
+from typing import List
+
+import datetime
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
     from typing_extensions import TypedDict
+
+
+##################################
+
+# Suggestion 1
+class VectorAnnotation(TypedDict):
+    """Definition of vector annotation
+
+    Vector name, annotation text and datetime for annotation
+    """
+
+    vector: str
+    annotation: str
+    date: datetime.datetime
+
+
+##################################
+
+# Suggestion 2
+class Annotation(TypedDict):
+    """Definition of annotation
+
+    annotation text and datetime for annotation
+    """
+
+    annotation: str
+    date: datetime.datetime
+
+
+class VectorAnnotation2(TypedDict):
+    vector: str
+    annotations: List[Annotation]
+
+
+##################################
 
 
 class DeltaEnsemble(TypedDict):

@@ -35,6 +35,9 @@ from .types.provider_set import (
 )
 from .utils.from_timeseries_cumulatives import rename_vector_from_cumulative
 
+# TMP
+from .types.types import Annotation
+
 
 class SimulationTimeSeries(WebvizPluginABC):
     # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
@@ -65,6 +68,9 @@ class SimulationTimeSeries(WebvizPluginABC):
         self._line_shape_fallback = set_simulation_line_shape_fallback(
             line_shape_fallback
         )
+
+        # Dictionary of vector keys and list of annotations for key
+        self._vector_annotations: Dict[str, List[Annotation]] = {}
 
         # Must define valid freqency!
         if Frequency.from_string_value(sampling) is None:

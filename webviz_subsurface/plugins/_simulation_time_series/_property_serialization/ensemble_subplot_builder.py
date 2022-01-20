@@ -18,6 +18,9 @@ from ..utils.create_vector_traces_utils import (
 )
 from .graph_figure_builder_base import GraphFigureBuilderBase
 
+# TMP
+from ..types.types import Annotation, VectorAnnotation
+
 
 class EnsembleSubplotBuilder(GraphFigureBuilderBase):
     """
@@ -298,6 +301,11 @@ class EnsembleSubplotBuilder(GraphFigureBuilderBase):
             self._add_vector_traces_set_to_figure(
                 vector_observations_traces_set, ensemble
             )
+
+    def add_vector_annotations(
+        self, vector_name: str, vector_annotations: List[Annotation]
+    ) -> None:
+        raise NotImplementedError("Method not implemented!")
 
     #############################################################################
     #
