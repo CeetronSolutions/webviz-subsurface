@@ -20,6 +20,8 @@ pages:
 ```
 """
 
+from ._rft_plotter_refactored import RftPlotterRefactored
+
 from ._assisted_history_matching_analysis import AssistedHistoryMatchingAnalysis
 from ._bhp_qc import BhpQc
 from ._disk_usage import DiskUsage

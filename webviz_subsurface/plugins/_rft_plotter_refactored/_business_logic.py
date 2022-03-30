@@ -16,7 +16,7 @@ from webviz_subsurface._utils.unique_theming import unique_colors
 
 
 class RftPlotterDataModel:
-    """Class keeping the data needed in the RFT vizualisations and various
+    """Class keeping the data needed in the RFT visualizations and various
     data providing methods.
     """
 

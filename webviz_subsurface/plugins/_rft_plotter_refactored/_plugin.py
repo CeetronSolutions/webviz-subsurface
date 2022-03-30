@@ -1,16 +1,20 @@
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
-import webviz_core_components as wcc
 from dash import Dash
 from webviz_config import WebvizPluginABC, WebvizSettings
 
 from ._business_logic import RftPlotterDataModel
-from ._callbacks import paramresp_callbacks, plugin_callbacks
-from ._layout import main_layout
+
+from ._views import (
+    RftCrossplotSimVsObs,
+    RftMap,
+    RftMisfitPerObservation,
+    RftMisfitPerReal,
+)
 
 
-class RftPlotter(WebvizPluginABC):
+class RftPlotterRefactored(WebvizPluginABC):
     """This plugin visualizes simulated RFT results from
 FMU ensembles combined with ERT observation data.
 
@@ -104,7 +108,7 @@ forward_models.html?highlight=gendata_rft#MERGE_RFT_ERTOBS).
     ) -> None:
         super().__init__(app)
 
-        self._datamodel = RftPlotterDataModel(
+        self._data_model = RftPlotterDataModel(
             webviz_settings,
             ensembles,
             formations,
@@ -114,18 +118,27 @@ forward_models.html?highlight=gendata_rft#MERGE_RFT_ERTOBS).
             csvfile_rft_ert,
         )
 
-        self.set_callbacks(app)
+        self.add_view(RftMap(self._data_model), "RftMap")
+        self.add_view(RftCrossplotSimVsObs(self._data_model), "RftCrossplotSimVsObs")
+        self.add_view(
+            RftMisfitPerObservation(self._data_model), "RftMisfitPerObservation"
+        )
+        self.add_view(RftMisfitPerReal(self._data_model), "RftMisfitPerReal")
+
+        # if not self._datamodel.param_model.sensrun:
+
+        # self.set_callbacks(app)
 
     def add_webvizstore(self) -> List[Tuple[Callable, List[Dict]]]:
-        return self._datamodel.webviz_store
+        return self._data_model.webviz_store
 
-    @property
-    def layout(self) -> wcc.Tabs:
-        return main_layout(self.uuid, self._datamodel)
+    # @property
+    # def layout(self) -> wcc.Tabs:
+    #     return main_layout(self.uuid, self._datamodel)
 
-    def set_callbacks(self, app: Dash) -> None:
-        plugin_callbacks(app, self.uuid, self._datamodel)
+    # def set_callbacks(self, app: Dash) -> None:
+    #     plugin_callbacks(app, self.uuid, self._data_model)
 
-        # It this is not a sensitivity run, add the parameter response callbacks
-        if not self._datamodel.param_model.sensrun:
-            paramresp_callbacks(app, self.uuid, self._datamodel)
+    #     It this is not a sensitivity run, add the parameter response callbacks
+    #     if not self._datamodel.param_model.sensrun:
+    #         paramresp_callbacks(app, self.uuid, self._datamodel)

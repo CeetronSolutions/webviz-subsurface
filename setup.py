@@ -59,6 +59,7 @@ setup(
             "ReservoirSimulationTimeSeriesOneByOne = webviz_subsurface.plugins:ReservoirSimulationTimeSeriesOneByOne",
             "ReservoirSimulationTimeSeriesRegional = webviz_subsurface.plugins:ReservoirSimulationTimeSeriesRegional",
             "RftPlotter = webviz_subsurface.plugins:RftPlotter",
+            "RftPlotterRefactored = webviz_subsurface.plugins:RftPlotterRefactored",
             "RunningTimeAnalysisFMU = webviz_subsurface.plugins:RunningTimeAnalysisFMU",
             "SegyViewer = webviz_subsurface.plugins:SegyViewer",
             "SimulationTimeSeries = webviz_subsurface.plugins:SimulationTimeSeries",
@@ -100,7 +101,7 @@ setup(
         "scipy>=1.2",
         "statsmodels>=0.12.1",  # indirect dependency through https://plotly.com/python/linear-fits/
         "webviz-config>=0.3.8",
-        "webviz-core-components>=0.5.6",
+        "webviz-core-components>=0.5.5",
         "webviz-subsurface-components>=0.4.10",
         "xtgeo>=2.14",
     ],
