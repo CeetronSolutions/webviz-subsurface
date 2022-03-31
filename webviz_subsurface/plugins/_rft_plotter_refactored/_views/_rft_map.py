@@ -55,21 +55,15 @@ class MapPlotSelections(SettingsGroupABC):
                     value=[self._start_date, self._end_date],
                     marks=self._date_marks,
                 ),
-                wcc.Selectors(
+                wcc.SelectWithLabel(
                     label="Zone filter",
-                    open_details=False,
-                    children=[
-                        wcc.SelectWithLabel(
-                            size=min(10, len(self._zone_names)),
-                            id=self.register_component_uuid(self.Elements.MAP_ZONES),
-                            options=[
-                                {"label": name, "value": name}
-                                for name in self._zone_names
-                            ],
-                            value=self._zone_names,
-                            multi=True,
-                        ),
+                    size=min(10, len(self._zone_names)),
+                    id=self.register_component_uuid(self.Elements.MAP_ZONES),
+                    options=[
+                        {"label": name, "value": name} for name in self._zone_names
                     ],
+                    value=self._zone_names,
+                    multi=True,
                 ),
             ]
         )
@@ -304,15 +298,15 @@ class RftMap(ViewABC):
 
         self._data_model = data_model
 
-        self.map_plot_view = MapPlotViewElement()
-        self.formations_graph_view = FormationsGraphViewElement()
+        self.map_plot_view_element = MapPlotViewElement()
+        self.formations_graph_view_element = FormationsGraphViewElement()
 
         row = self.add_row()
         row.add_view_element(
-            self.map_plot_view, RftMap.ViewElements.MAP_PLOT_ROW_ELEMENT
+            self.map_plot_view_element, RftMap.ViewElements.MAP_PLOT_ROW_ELEMENT
         )
         row.add_view_element(
-            self.formations_graph_view,
+            self.formations_graph_view_element,
             RftMap.ViewElements.FORMATONS_GRAPH_ROW_ELEMENT,
         )
 
@@ -366,14 +360,14 @@ class RftMap(ViewABC):
                 "value",
             ),
             Input(
-                self.map_plot_view.setting_group_uuid(
+                self.map_plot_view_element.setting_group_uuid(
                     MapPlotViewElement.Settings.MAP_PLOT_SETTINGS,
                     MapPlotViewElementSettings.Elements.MAP_SIZE_BY,
                 ),
                 "value",
             ),
             Input(
-                self.map_plot_view.setting_group_uuid(
+                self.map_plot_view_element.setting_group_uuid(
                     MapPlotViewElement.Settings.MAP_PLOT_SETTINGS,
                     MapPlotViewElementSettings.Elements.MAP_COLOR_BY,
                 ),
@@ -425,14 +419,14 @@ class RftMap(ViewABC):
                 "value",
             ),
             Input(
-                self.formations_graph_view.setting_group_uuid(
+                self.formations_graph_view_element.setting_group_uuid(
                     FormationsGraphViewElement.Settings.FORMATION_GRAPH_SETTINGS,
                     FormationsGraphViewElementsSettings.Elements.FORMATIONS_LINETYPE,
                 ),
                 "value",
             ),
             Input(
-                self.formations_graph_view.setting_group_uuid(
+                self.formations_graph_view_element.setting_group_uuid(
                     FormationsGraphViewElement.Settings.FORMATION_GRAPH_SETTINGS,
                     FormationsGraphViewElementsSettings.Elements.FORMATIONS_DEPTHOPTION,
                 ),
@@ -507,28 +501,28 @@ class RftMap(ViewABC):
 
         @app.callback(
             Output(
-                self.formations_graph_view.setting_group_uuid(
+                self.formations_graph_view_element.setting_group_uuid(
                     FormationsGraphViewElement.Settings.FORMATION_GRAPH_SETTINGS,
                     FormationsGraphViewElementsSettings.Elements.FORMATIONS_LINETYPE,
                 ),
                 "options",
             ),
             Output(
-                self.formations_graph_view.setting_group_uuid(
+                self.formations_graph_view_element.setting_group_uuid(
                     FormationsGraphViewElement.Settings.FORMATION_GRAPH_SETTINGS,
                     FormationsGraphViewElementsSettings.Elements.FORMATIONS_LINETYPE,
                 ),
                 "value",
             ),
             Input(
-                self.formations_graph_view.setting_group_uuid(
+                self.formations_graph_view_element.setting_group_uuid(
                     FormationsGraphViewElement.Settings.FORMATION_GRAPH_SETTINGS,
                     FormationsGraphViewElementsSettings.Elements.FORMATIONS_DEPTHOPTION,
                 ),
                 "value",
             ),
             State(
-                self.formations_graph_view.setting_group_uuid(
+                self.formations_graph_view_element.setting_group_uuid(
                     FormationsGraphViewElement.Settings.FORMATION_GRAPH_SETTINGS,
                     FormationsGraphViewElementsSettings.Elements.FORMATIONS_LINETYPE,
                 ),
