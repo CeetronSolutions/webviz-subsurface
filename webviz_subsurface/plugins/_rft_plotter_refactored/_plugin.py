@@ -11,6 +11,7 @@ from ._views import (
     RftMap,
     RftMisfitPerObservation,
     RftMisfitPerReal,
+    RftParameterResponse,
 )
 
 
@@ -119,26 +120,16 @@ forward_models.html?highlight=gendata_rft#MERGE_RFT_ERTOBS).
         )
 
         self.add_view(RftMap(self._data_model), "RftMap")
+        self.add_view(RftMisfitPerReal(self._data_model), "RftMisfitPerReal")
         self.add_view(RftCrossplotSimVsObs(self._data_model), "RftCrossplotSimVsObs")
         self.add_view(
             RftMisfitPerObservation(self._data_model), "RftMisfitPerObservation"
         )
-        self.add_view(RftMisfitPerReal(self._data_model), "RftMisfitPerReal")
 
-        # if not self._datamodel.param_model.sensrun:
-
-        # self.set_callbacks(app)
+        if not self._data_model.param_model.sensrun:
+            self.add_view(
+                RftParameterResponse(self._data_model), "RftParameterResponse"
+            )
 
     def add_webvizstore(self) -> List[Tuple[Callable, List[Dict]]]:
         return self._data_model.webviz_store
-
-    # @property
-    # def layout(self) -> wcc.Tabs:
-    #     return main_layout(self.uuid, self._datamodel)
-
-    # def set_callbacks(self, app: Dash) -> None:
-    #     plugin_callbacks(app, self.uuid, self._data_model)
-
-    #     It this is not a sensitivity run, add the parameter response callbacks
-    #     if not self._datamodel.param_model.sensrun:
-    #         paramresp_callbacks(app, self.uuid, self._datamodel)
