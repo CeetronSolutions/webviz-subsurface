@@ -107,7 +107,7 @@ forward_models.html?highlight=gendata_rft#MERGE_RFT_ERTOBS).
         obsdata: Path = None,
         faultlines: Path = None,
     ) -> None:
-        super().__init__(app)
+        super().__init__(app, stretch=True)
 
         self._data_model = RftPlotterDataModel(
             webviz_settings,

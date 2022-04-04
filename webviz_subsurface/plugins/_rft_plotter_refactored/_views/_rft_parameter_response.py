@@ -10,6 +10,7 @@ import webviz_core_components as wcc
 from webviz_config.webviz_plugin_subclasses._views import ViewABC, ViewElementABC
 from webviz_config.webviz_plugin_subclasses._settings_group_abc import SettingsGroupABC
 
+# from ..utils.parameter_filter import ParameterFilter
 from webviz_subsurface._components.parameter_filter import ParameterFilter
 
 from ...._figures import BarChart, ScatterPlot
@@ -328,7 +329,7 @@ class RftParameterResponse(ViewABC):
             Input(
                 self._barchart_view_element.component_uuid(
                     BarchartViewElement.Elements.BARCHART_GRAPH
-                ),
+                ).to_string(),
                 "clickData",
             ),
             State(
@@ -374,7 +375,7 @@ class RftParameterResponse(ViewABC):
             Input(
                 self._barchart_view_element.component_uuid(
                     BarchartViewElement.Elements.BARCHART_GRAPH
-                ),
+                ).to_string(),
                 "clickData",
             ),
             State(
@@ -628,19 +629,19 @@ class RftParameterResponse(ViewABC):
             Output(
                 self._barchart_view_element.component_uuid(
                     BarchartViewElement.Elements.BARCHART_GRAPH
-                ),
+                ).to_string(),
                 "figure",
             ),
             Output(
                 self._scatterplot_view_element.component_uuid(
                     ScatterplotViewElement.Elements.SCATTERPLOT_GRAPH
-                ),
+                ).to_string(),
                 "figure",
             ),
             Output(
                 self._formations_view_element.component_uuid(
                     FormationsViewElement.Elements.FORMATIONS_GRAPH
-                ),
+                ).to_string(),
                 "figure",
             ),
             Input(
