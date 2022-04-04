@@ -28,17 +28,17 @@ class ParameterFilter:
 
     def __init__(
         self,
-        uuid: str,
+        parameter_filter_id: str,
         dframe: pd.DataFrame,
         component_uuid: Callable[[str], LayoutUuid],
         register_component_uuid: Callable[[str], str],
         reset_on_ensemble_update: bool = False,
     ) -> None:
         """
-        * **`uuid`:** Unique id (use the plugin id).
+        * **`parameter_filter_id`:** Id(name) of the parameter filter instance
         * **`dframe`:** Dataframe, of all parameter values in all ensembles"""
 
-        self._uuid = uuid
+        self._id = parameter_filter_id
         self._reset_on_ensemble_update = reset_on_ensemble_update
         self._pmodel = ParametersModel(
             dataframe=dframe,
@@ -55,9 +55,7 @@ class ParameterFilter:
         self._min_max_all = self._return_min_max_ranges(self._ensembles)
 
         self._component_uuid = component_uuid
-        register_component_uuid(self._component_uuid())
-
-        self.set_callbacks()
+        self._register_component_uuid = register_component_uuid
 
     @property
     def _ensembles(self) -> List[str]:
@@ -149,6 +147,9 @@ class ParameterFilter:
 
     @property
     def layout(self) -> html.Div:
+        uuid = self._component_uuid(self._id).to_string()
+        self._register_component_uuid(uuid)
+
         return html.Div(
             children=[
                 html.Div(
@@ -162,11 +163,11 @@ class ParameterFilter:
                     ]
                 ),
                 dcc.Store(
-                    id={"id": self._uuid, "type": "data-store"},
+                    id={"id": uuid, "type": "data-store"},
                     data=self._initial_store,
                 ),
-                dcc.Store(id={"id": self._uuid, "type": "value-store"}, data={}),
-                dcc.Store(id={"id": self._uuid, "type": "ensemble-update"}),
+                dcc.Store(id={"id": uuid, "type": "value-store"}, data={}),
+                dcc.Store(id={"id": uuid, "type": "ensemble-update"}),
             ],
         )
 
@@ -179,42 +180,46 @@ class ParameterFilter:
 
     @property
     def active_filters_layout(self) -> html.Details:
+        uuid = self._component_uuid(self._id).to_string()
         return html.Details(
             className="webviz-selectors",
             children=[
                 html.Summary(
                     "Active Filters",
                     className="webviz-underlined-label",
-                    id={"id": self._uuid, "type": "filter-active-label"},
+                    id={"id": uuid, "type": "filter-active-label"},
                 ),
                 html.Div(
                     style={"padding": "10px", "font-size": "15px"},
-                    id={"id": self._uuid, "type": "filter-active-wrapper"},
+                    id={"id": uuid, "type": "filter-active-wrapper"},
                 ),
             ],
         )
 
     @property
     def realizations_removed_layout(self) -> wcc.Selectors:
+        uuid = self._component_uuid(self._id).to_string()
         return wcc.Selectors(
             label="Realizations removed",
             open_details=False,
-            children=html.Div(id={"id": self._uuid, "type": "real-active-wrapper"}),
+            children=html.Div(id={"id": uuid, "type": "real-active-wrapper"}),
             style={"font-size": "15px"},
         )
 
     @property
     def parameter_filter_layout(self) -> wcc.Selectors:
+        uuid = self._component_uuid(self._id).to_string()
         return wcc.Selectors(
             label="Parameters",
             children=html.Div(
-                id={"id": self._uuid, "type": "filter-wrapper"},
+                id={"id": uuid, "type": "filter-wrapper"},
                 style={"overflowY": "auto", "height": self._viewheight_parameters},
             ),
         )
 
     @property
     def settings_layout(self) -> html.Div:
+        uuid = self._component_uuid(self._id).to_string()
         return html.Div(
             wcc.Selectors(
                 label="Settings",
@@ -228,7 +233,7 @@ class ParameterFilter:
                     },
                     children=[
                         wcc.Checklist(
-                            id={"id": self._uuid, "type": "ensemble-selector"},
+                            id={"id": uuid, "type": "ensemble-selector"},
                             label="Filter Ensembles:",
                             options=[
                                 {"label": val, "value": val} for val in self._ensembles
@@ -237,7 +242,7 @@ class ParameterFilter:
                             vertical=False,
                         ),
                         wcc.RadioItems(
-                            id={"id": self._uuid, "type": "range-selector"},
+                            id={"id": uuid, "type": "range-selector"},
                             label="Use ranges from:",
                             options=[
                                 {"label": "Selected", "value": "selected"},
@@ -266,34 +271,37 @@ class ParameterFilter:
             "line-height": "30px",
             "background-color": "white",
         }
+        uuid = self._component_uuid(self._id).to_string()
         return html.Div(
             style={"marginTop": "10px", "height": "35px"},
             children=[
                 html.Button(
                     "Reset",
                     style={"width": "48%", "float": "right", **button_style},
-                    id={"id": self._uuid, "type": "reset-button"},
+                    id={"id": uuid, "type": "reset-button"},
                 ),
                 html.Button(
                     "Apply",
                     style={"width": "48%", "float": "left", **button_style},
-                    id={"id": self._uuid, "type": "apply-button"},
+                    id={"id": uuid, "type": "apply-button"},
                 ),
             ],
         )
 
     # pylint: disable=too-many-statements
     def set_callbacks(self) -> None:
+        uuid = self._component_uuid(self._id).to_string()
+
         @callback(
-            Output({"id": self._uuid, "type": "data-store"}, "data"),
-            Output({"id": self._uuid, "type": "value-store"}, "data"),
-            Input({"id": self._uuid, "type": "apply-button"}, "n_clicks"),
-            State({"id": self._uuid, "type": "ensemble-selector"}, "value"),
-            State({"id": self._uuid, "type": "slider", "name": ALL, "r": ALL}, "value"),
-            State({"id": self._uuid, "type": "select", "name": ALL, "r": ALL}, "value"),
-            State({"id": self._uuid, "type": "data-store"}, "data"),
-            State({"id": self._uuid, "type": "slider", "name": ALL, "r": ALL}, "id"),
-            State({"id": self._uuid, "type": "select", "name": ALL, "r": ALL}, "id"),
+            Output({"id": uuid, "type": "data-store"}, "data"),
+            Output({"id": uuid, "type": "value-store"}, "data"),
+            Input({"id": uuid, "type": "apply-button"}, "n_clicks"),
+            State({"id": uuid, "type": "ensemble-selector"}, "value"),
+            State({"id": uuid, "type": "slider", "name": ALL, "r": ALL}, "value"),
+            State({"id": uuid, "type": "select", "name": ALL, "r": ALL}, "value"),
+            State({"id": uuid, "type": "data-store"}, "data"),
+            State({"id": uuid, "type": "slider", "name": ALL, "r": ALL}, "id"),
+            State({"id": uuid, "type": "select", "name": ALL, "r": ALL}, "id"),
         )
         def store_selections(
             n_clicks: int,
@@ -330,15 +338,15 @@ class ParameterFilter:
             return real_dict if update_data_store else no_update, values
 
         @callback(
-            Output({"id": self._uuid, "type": "filter-wrapper"}, "children"),
-            Output({"id": self._uuid, "type": "apply-button"}, "n_clicks"),
-            Input({"id": self._uuid, "type": "reset-button"}, "n_clicks"),
-            Input({"id": self._uuid, "type": "range-selector"}, "value"),
-            Input({"id": self._uuid, "type": "ensemble-selector"}, "value"),
-            State({"id": self._uuid, "type": "slider", "name": ALL, "r": ALL}, "value"),
-            State({"id": self._uuid, "type": "slider", "name": ALL, "r": ALL}, "id"),
-            State({"id": self._uuid, "type": "select", "name": ALL, "r": ALL}, "value"),
-            State({"id": self._uuid, "type": "select", "name": ALL, "r": ALL}, "id"),
+            Output({"id": uuid, "type": "filter-wrapper"}, "children"),
+            Output({"id": uuid, "type": "apply-button"}, "n_clicks"),
+            Input({"id": uuid, "type": "reset-button"}, "n_clicks"),
+            Input({"id": uuid, "type": "range-selector"}, "value"),
+            Input({"id": uuid, "type": "ensemble-selector"}, "value"),
+            State({"id": uuid, "type": "slider", "name": ALL, "r": ALL}, "value"),
+            State({"id": uuid, "type": "slider", "name": ALL, "r": ALL}, "id"),
+            State({"id": uuid, "type": "select", "name": ALL, "r": ALL}, "value"),
+            State({"id": uuid, "type": "select", "name": ALL, "r": ALL}, "id"),
         )
         # pylint: disable=too-many-locals
         def update_filtercomponents_and_apply(
@@ -378,7 +386,7 @@ class ParameterFilter:
                             if reset or col not in values
                             else values[col],
                             name=col,
-                            uuid=self._uuid,
+                            uuid=uuid,
                             step=10 ** -self._column_precisions[col],
                         )
                     )
@@ -396,16 +404,16 @@ class ParameterFilter:
                             value=value if value else unique_values,
                             options=unique_values,
                             name=col,
-                            uuid=self._uuid,
+                            uuid=uuid,
                         )
                     )
 
             return children, 1 if not "range-selector" in ctx else no_update
 
         @callback(
-            Output({"id": self._uuid, "type": "real-active-wrapper"}, "children"),
-            Input({"id": self._uuid, "type": "value-store"}, "data"),
-            State({"id": self._uuid, "type": "data-store"}, "data"),
+            Output({"id": uuid, "type": "real-active-wrapper"}, "children"),
+            Input({"id": uuid, "type": "value-store"}, "data"),
+            State({"id": uuid, "type": "data-store"}, "data"),
         )
         def _update_missing_real_text(_value_store: list, data_store: dict) -> list:
             return [
@@ -419,14 +427,14 @@ class ParameterFilter:
             ]
 
         @callback(
-            Output({"id": self._uuid, "type": "filter-active-label"}, "style"),
-            Output({"id": self._uuid, "type": "filter-active-wrapper"}, "children"),
-            Input({"id": self._uuid, "type": "value-store"}, "data"),
-            State({"id": self._uuid, "type": "ensemble-selector"}, "value"),
-            State({"id": self._uuid, "type": "slider", "name": ALL, "r": ALL}, "value"),
-            State({"id": self._uuid, "type": "select", "name": ALL, "r": ALL}, "value"),
-            State({"id": self._uuid, "type": "slider", "name": ALL, "r": ALL}, "id"),
-            State({"id": self._uuid, "type": "select", "name": ALL, "r": ALL}, "id"),
+            Output({"id": uuid, "type": "filter-active-label"}, "style"),
+            Output({"id": uuid, "type": "filter-active-wrapper"}, "children"),
+            Input({"id": uuid, "type": "value-store"}, "data"),
+            State({"id": uuid, "type": "ensemble-selector"}, "value"),
+            State({"id": uuid, "type": "slider", "name": ALL, "r": ALL}, "value"),
+            State({"id": uuid, "type": "select", "name": ALL, "r": ALL}, "value"),
+            State({"id": uuid, "type": "slider", "name": ALL, "r": ALL}, "id"),
+            State({"id": uuid, "type": "select", "name": ALL, "r": ALL}, "id"),
         )
         def _update_active_filter_text(
             _value_store: list,
@@ -463,14 +471,14 @@ class ParameterFilter:
             return active_filter_style, params_active
 
         @callback(
-            Output({"id": self._uuid, "type": "apply-button"}, "style"),
-            Input({"id": self._uuid, "type": "apply-button"}, "n_clicks"),
-            Input({"id": self._uuid, "type": "slider", "name": ALL, "r": ALL}, "value"),
-            Input({"id": self._uuid, "type": "select", "name": ALL, "r": ALL}, "value"),
-            State({"id": self._uuid, "type": "slider", "name": ALL, "r": ALL}, "id"),
-            State({"id": self._uuid, "type": "select", "name": ALL, "r": ALL}, "id"),
-            State({"id": self._uuid, "type": "value-store"}, "data"),
-            State({"id": self._uuid, "type": "apply-button"}, "style"),
+            Output({"id": uuid, "type": "apply-button"}, "style"),
+            Input({"id": uuid, "type": "apply-button"}, "n_clicks"),
+            Input({"id": uuid, "type": "slider", "name": ALL, "r": ALL}, "value"),
+            Input({"id": uuid, "type": "select", "name": ALL, "r": ALL}, "value"),
+            State({"id": uuid, "type": "slider", "name": ALL, "r": ALL}, "id"),
+            State({"id": uuid, "type": "select", "name": ALL, "r": ALL}, "id"),
+            State({"id": uuid, "type": "value-store"}, "data"),
+            State({"id": uuid, "type": "apply-button"}, "style"),
         )
         def _update_apply_button_style(
             _n_clicks: int,
@@ -497,9 +505,9 @@ class ParameterFilter:
             return style
 
         @callback(
-            Output({"id": self._uuid, "type": "ensemble-selector"}, "value"),
-            Output({"id": self._uuid, "type": "ensemble-selector"}, "options"),
-            Input({"id": self._uuid, "type": "ensemble-update"}, "data"),
+            Output({"id": uuid, "type": "ensemble-selector"}, "value"),
+            Output({"id": uuid, "type": "ensemble-selector"}, "options"),
+            Input({"id": uuid, "type": "ensemble-update"}, "data"),
             prevent_initial_call=True,
         )
         def _update_ensembles_from_outside(ensembles: list) -> tuple:

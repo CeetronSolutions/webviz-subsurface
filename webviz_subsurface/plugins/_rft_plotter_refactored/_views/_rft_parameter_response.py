@@ -11,8 +11,7 @@ import webviz_core_components as wcc
 from webviz_config.webviz_plugin_subclasses._views import ViewABC, ViewElementABC
 from webviz_config.webviz_plugin_subclasses._settings_group_abc import SettingsGroupABC
 
-# from ..utils.parameter_filter import ParameterFilter
-from webviz_subsurface._components.parameter_filter import ParameterFilter
+from ..utils.parameter_filter import ParameterFilter
 
 from ...._figures import BarChart, ScatterPlot
 from .._business_logic import RftPlotterDataModel, correlate
@@ -52,7 +51,17 @@ class ParameterResponseSelections(SettingsGroupABC):
 
         self._df_parameter_model = df_parameter_model
         self._parameter_model_mc_ensembles = parameter_model_mc_ensembles
-        self._parameter_filter: Optional[ParameterFilter] = None
+        self._parameter_filter = ParameterFilter(
+            parameter_filter_id=self.Elements.PARAMETER_FILTER,
+            dframe=self._df_parameter_model[
+                self._df_parameter_model["ENSEMBLE"].isin(
+                    self._parameter_model_mc_ensembles
+                )
+            ].copy(),
+            component_uuid=self.component_uuid,
+            register_component_uuid=self.register_component_uuid,
+            reset_on_ensemble_update=True,
+        )
 
     def layout(self) -> Type[Component]:
         return html.Div(
@@ -133,29 +142,14 @@ class ParameterResponseSelections(SettingsGroupABC):
                     max_width="lg",
                     children=html.Div(
                         style={"height": "70vh", "width": "30vw"},
-                        children=self._parameter_filter.layout
-                        if self._parameter_filter
-                        else [],
+                        children=self._parameter_filter.layout,
                     ),
                 ),
             ]
         )
 
     def _set_callbacks(self, __app: Dash) -> None:
-        # NOTE: Must create argument with register uuid in callback-function to
-        # obtain correct uuid for ParameterFilter
-        self._parameter_filter = ParameterFilter(
-            uuid=self.register_component_uuid(self.Elements.PARAMETER_FILTER),
-            dframe=self._df_parameter_model[
-                self._df_parameter_model["ENSEMBLE"].isin(
-                    self._parameter_model_mc_ensembles
-                )
-            ].copy(),
-            reset_on_ensemble_update=True,
-        )
-        # NOTE: If removing self.set_callbacks() in ParameterFilter.__init__(),
-        # code below must be called!
-        # self._parameter_filter.set_callbacks()
+        self._parameter_filter.set_callbacks()
 
 
 class BarchartViewElementSettings(SettingsGroupABC):
