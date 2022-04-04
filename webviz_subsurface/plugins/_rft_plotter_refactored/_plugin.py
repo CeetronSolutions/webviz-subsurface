@@ -13,6 +13,7 @@ from ._views import (
     RftMisfitPerReal,
     RftParameterResponse,
 )
+from ._shared_settings import ViewFilters
 
 
 class RftPlotterRefactored(WebvizPluginABC):
@@ -95,6 +96,16 @@ forward_models.html?highlight=gendata_rft#MERGE_RFT_ERTOBS).
 
 """
 
+    class ViewIds:
+        RFT_MAP = "RftMap"
+        RFT_MISFIT_PER_REAL = "RftMisfitPerReal"
+        RFT_CROSSPLOT_SIM_VS_OBS = "RftCrossplotSimVsObs"
+        RFT_MISFIT_PER_OBSERVATION = "RftMisfitPerObservation"
+        RFT_PARAMETER_RESPONSE = "RftParameterResponse"
+
+    class SharedSettingsIds:
+        VIEW_FILTERS = "ViewFilters"
+
     # pylint: disable=too-many-arguments
     def __init__(
         self,
@@ -119,17 +130,47 @@ forward_models.html?highlight=gendata_rft#MERGE_RFT_ERTOBS).
             csvfile_rft_ert,
         )
 
-        self.add_view(RftMap(self._data_model), "RftMap")
-        self.add_view(RftMisfitPerReal(self._data_model), "RftMisfitPerReal")
-        self.add_view(RftCrossplotSimVsObs(self._data_model), "RftCrossplotSimVsObs")
+        self.add_view(RftMap(self._data_model), self.ViewIds.RFT_MAP)
         self.add_view(
-            RftMisfitPerObservation(self._data_model), "RftMisfitPerObservation"
+            RftMisfitPerReal(
+                self._data_model, shared_filters_id=self.SharedSettingsIds.VIEW_FILTERS
+            ),
+            self.ViewIds.RFT_MISFIT_PER_REAL,
+        )
+        self.add_view(
+            RftCrossplotSimVsObs(
+                self._data_model, shared_filters_id=self.SharedSettingsIds.VIEW_FILTERS
+            ),
+            self.ViewIds.RFT_CROSSPLOT_SIM_VS_OBS,
+        )
+        self.add_view(
+            RftMisfitPerObservation(
+                self._data_model, shared_filters_id=self.SharedSettingsIds.VIEW_FILTERS
+            ),
+            self.ViewIds.RFT_MISFIT_PER_OBSERVATION,
         )
 
         if not self._data_model.param_model.sensrun:
             self.add_view(
-                RftParameterResponse(self._data_model), "RftParameterResponse"
+                RftParameterResponse(self._data_model),
+                self.ViewIds.RFT_PARAMETER_RESPONSE,
             )
+
+        self._view_filters = ViewFilters(
+            self._data_model.ensembles,
+            self._data_model.well_names,
+            self._data_model.zone_names,
+            self._data_model.dates,
+        )
+        self.add_shared_settings_group(
+            self._view_filters,
+            self.SharedSettingsIds.VIEW_FILTERS,
+            visible_in_views=[
+                self.view(self.ViewIds.RFT_MISFIT_PER_REAL).uuid(),
+                self.view(self.ViewIds.RFT_CROSSPLOT_SIM_VS_OBS).uuid(),
+                self.view(self.ViewIds.RFT_MISFIT_PER_OBSERVATION).uuid(),
+            ],
+        )
 
     def add_webvizstore(self) -> List[Tuple[Callable, List[Dict]]]:
         return self._data_model.webviz_store

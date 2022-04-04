@@ -6,89 +6,89 @@ from dash import html, Dash, Input, Output
 import webviz_core_components as wcc
 
 from webviz_config.webviz_plugin_subclasses._views import ViewABC, ViewElementABC
-from webviz_config.webviz_plugin_subclasses._settings_group_abc import SettingsGroupABC
 
 from .._business_logic import RftPlotterDataModel, filter_frame
 from .._figures._errorplot_figure import update_errorplot
+from .._shared_settings import ViewFilters
 
 
-class MisfitPlotSelections(SettingsGroupABC):
-    """Settings for misfit plot in Settings Drawer"""
+# class MisfitPlotSelections(SettingsGroupABC):
+#     """Settings for misfit plot in Settings Drawer"""
 
-    # TODO: Move to shared settings when shared settings for selection of views is supported
+#     # TODO: Move to shared settings when shared settings for selection of views is supported
 
-    class Elements:
-        # pylint: disable=too-few-public-methods
-        FILTER_ENSEMBLES = "ensembles-errorplot"
-        FILTER_WELLS = "well-errorplot"
-        FILTER_ZONES = "zones-errorplot"
-        FILTER_DATES = "dates-errorplot"
+#     class Elements:
+#         # pylint: disable=too-few-public-methods
+#         FILTER_ENSEMBLES = "ensembles-errorplot"
+#         FILTER_WELLS = "well-errorplot"
+#         FILTER_ZONES = "zones-errorplot"
+#         FILTER_DATES = "dates-errorplot"
 
-    def __init__(
-        self,
-        ensembles: List[str],
-        well_names: List[str],
-        zone_names: List[str],
-        dates: List[str],
-    ) -> None:
-        super().__init__("Filters")
+#     def __init__(
+#         self,
+#         ensembles: List[str],
+#         well_names: List[str],
+#         zone_names: List[str],
+#         dates: List[str],
+#     ) -> None:
+#         super().__init__("Filters")
 
-        self._ensembles = ensembles
-        self._well_names = well_names
-        self._zone_names = zone_names
-        self._dates = dates
+#         self._ensembles = ensembles
+#         self._well_names = well_names
+#         self._zone_names = zone_names
+#         self._dates = dates
 
-    def layout(self) -> Type[Component]:
-        return html.Div(
-            children=[
-                wcc.SelectWithLabel(
-                    label="Ensembles",
-                    size=min(4, len(self._ensembles)),
-                    id=self.register_component_uuid(
-                        MisfitPlotSelections.Elements.FILTER_ENSEMBLES
-                    ),
-                    options=[
-                        {"label": name, "value": name} for name in self._ensembles
-                    ],
-                    value=self._ensembles,
-                    multi=True,
-                ),
-                wcc.SelectWithLabel(
-                    label="Wells",
-                    size=min(20, len(self._well_names)),
-                    id=self.register_component_uuid(
-                        MisfitPlotSelections.Elements.FILTER_WELLS
-                    ),
-                    options=[
-                        {"label": name, "value": name} for name in self._well_names
-                    ],
-                    value=self._well_names,
-                    multi=True,
-                ),
-                wcc.SelectWithLabel(
-                    label="Zones",
-                    size=min(10, len(self._zone_names)),
-                    id=self.register_component_uuid(
-                        MisfitPlotSelections.Elements.FILTER_ZONES
-                    ),
-                    options=[
-                        {"label": name, "value": name} for name in self._zone_names
-                    ],
-                    value=self._zone_names,
-                    multi=True,
-                ),
-                wcc.SelectWithLabel(
-                    label="Dates",
-                    size=min(10, len(self._dates)),
-                    id=self.register_component_uuid(
-                        MisfitPlotSelections.Elements.FILTER_DATES
-                    ),
-                    options=[{"label": name, "value": name} for name in self._dates],
-                    value=self._dates,
-                    multi=True,
-                ),
-            ]
-        )
+#     def layout(self) -> Type[Component]:
+#         return html.Div(
+#             children=[
+#                 wcc.SelectWithLabel(
+#                     label="Ensembles",
+#                     size=min(4, len(self._ensembles)),
+#                     id=self.register_component_uuid(
+#                         MisfitPlotSelections.Elements.FILTER_ENSEMBLES
+#                     ),
+#                     options=[
+#                         {"label": name, "value": name} for name in self._ensembles
+#                     ],
+#                     value=self._ensembles,
+#                     multi=True,
+#                 ),
+#                 wcc.SelectWithLabel(
+#                     label="Wells",
+#                     size=min(20, len(self._well_names)),
+#                     id=self.register_component_uuid(
+#                         MisfitPlotSelections.Elements.FILTER_WELLS
+#                     ),
+#                     options=[
+#                         {"label": name, "value": name} for name in self._well_names
+#                     ],
+#                     value=self._well_names,
+#                     multi=True,
+#                 ),
+#                 wcc.SelectWithLabel(
+#                     label="Zones",
+#                     size=min(10, len(self._zone_names)),
+#                     id=self.register_component_uuid(
+#                         MisfitPlotSelections.Elements.FILTER_ZONES
+#                     ),
+#                     options=[
+#                         {"label": name, "value": name} for name in self._zone_names
+#                     ],
+#                     value=self._zone_names,
+#                     multi=True,
+#                 ),
+#                 wcc.SelectWithLabel(
+#                     label="Dates",
+#                     size=min(10, len(self._dates)),
+#                     id=self.register_component_uuid(
+#                         MisfitPlotSelections.Elements.FILTER_DATES
+#                     ),
+#                     options=[{"label": name, "value": name} for name in self._dates],
+#                     value=self._dates,
+#                     multi=True,
+#                 ),
+#             ]
+#         )
 
 
 class MisfitPlotViewElement(ViewElementABC):
@@ -114,27 +114,25 @@ class RftMisfitPerObservation(ViewABC):
         # pylint: disable=too-few-public-methods
         MISFIT_PLOT_SELECTIONS = "misfit_plot_selections"
 
-    def __init__(self, data_model: RftPlotterDataModel) -> None:
+    def __init__(
+        self,
+        data_model: RftPlotterDataModel,
+        shared_filters_id: str,
+    ) -> None:
         super().__init__("RFT Misfit Per Observation")
 
         self._data_model = data_model
-        self._misfit_plot_view_element = MisfitPlotViewElement()
 
+        self._misfit_plot_view_element = MisfitPlotViewElement()
         self.add_view_element(
             self._misfit_plot_view_element, self.ViewElements.MISFIT_PLOT_VIEW_ELEMENT
         )
-
-        self.add_settings_group(
-            MisfitPlotSelections(
-                ensembles=data_model.ensembles,
-                well_names=data_model.well_names,
-                zone_names=data_model.zone_names,
-                dates=data_model.dates,
-            ),
-            self.Settings.MISFIT_PLOT_SELECTIONS,
-        )
+        self._shared_filters_id = shared_filters_id
 
     def _set_callbacks(self, app: Dash) -> None:
+        if not self.shared_settings_group(self._shared_filters_id):
+            return
+
         @app.callback(
             Output(
                 self.view_element_uuid(
@@ -144,30 +142,26 @@ class RftMisfitPerObservation(ViewABC):
                 "children",
             ),
             Input(
-                self.settings_group_uuid(
-                    self.Settings.MISFIT_PLOT_SELECTIONS,
-                    MisfitPlotSelections.Elements.FILTER_WELLS,
+                self.shared_settings_group_uuid(
+                    self._shared_filters_id, ViewFilters.Elements.FILTER_WELLS
                 ),
                 "value",
             ),
             Input(
-                self.settings_group_uuid(
-                    self.Settings.MISFIT_PLOT_SELECTIONS,
-                    MisfitPlotSelections.Elements.FILTER_ZONES,
+                self.shared_settings_group_uuid(
+                    self._shared_filters_id, ViewFilters.Elements.FILTER_ZONES
                 ),
                 "value",
             ),
             Input(
-                self.settings_group_uuid(
-                    self.Settings.MISFIT_PLOT_SELECTIONS,
-                    MisfitPlotSelections.Elements.FILTER_DATES,
+                self.shared_settings_group_uuid(
+                    self._shared_filters_id, ViewFilters.Elements.FILTER_DATES
                 ),
                 "value",
             ),
             Input(
-                self.settings_group_uuid(
-                    self.Settings.MISFIT_PLOT_SELECTIONS,
-                    MisfitPlotSelections.Elements.FILTER_ENSEMBLES,
+                self.shared_settings_group_uuid(
+                    self._shared_filters_id, ViewFilters.Elements.FILTER_ENSEMBLES
                 ),
                 "value",
             ),
@@ -182,3 +176,51 @@ class RftMisfitPerObservation(ViewABC):
             if df.empty:
                 return "No data matching the given filter criteria"
             return [update_errorplot(df, self._data_model.enscolors)]
+
+        # @app.callback(
+        #     Output(
+        #         self.view_element_uuid(
+        #             self.ViewElements.MISFIT_PLOT_VIEW_ELEMENT,
+        #             MisfitPlotViewElement.Elements.ERRORPLOT_GRAPH_CONTAINER,
+        #         ),
+        #         "children",
+        #     ),
+        #     Input(
+        #         self.settings_group_uuid(
+        #             self.Settings.MISFIT_PLOT_SELECTIONS,
+        #             MisfitPlotSelections.Elements.FILTER_WELLS,
+        #         ),
+        #         "value",
+        #     ),
+        #     Input(
+        #         self.settings_group_uuid(
+        #             self.Settings.MISFIT_PLOT_SELECTIONS,
+        #             MisfitPlotSelections.Elements.FILTER_ZONES,
+        #         ),
+        #         "value",
+        #     ),
+        #     Input(
+        #         self.settings_group_uuid(
+        #             self.Settings.MISFIT_PLOT_SELECTIONS,
+        #             MisfitPlotSelections.Elements.FILTER_DATES,
+        #         ),
+        #         "value",
+        #     ),
+        #     Input(
+        #         self.settings_group_uuid(
+        #             self.Settings.MISFIT_PLOT_SELECTIONS,
+        #             MisfitPlotSelections.Elements.FILTER_ENSEMBLES,
+        #         ),
+        #         "value",
+        #     ),
+        # )
+        # def _errorplot(
+        #     wells: List[str], zones: List[str], dates: List[str], ensembles: List[str]
+        # ) -> Union[str, List[wcc.Graph]]:
+        #     df = filter_frame(
+        #         self._data_model.ertdatadf,
+        #         {"WELL": wells, "ZONE": zones, "DATE": dates, "ENSEMBLE": ensembles},
+        #     )
+        #     if df.empty:
+        #         return "No data matching the given filter criteria"
+        #     return [update_errorplot(df, self._data_model.enscolors)]
