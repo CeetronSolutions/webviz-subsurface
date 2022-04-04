@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from dash.development.base_component import Component
@@ -21,8 +22,8 @@ from .._figures._formation_figure import FormationFigure
 class ParameterResponseSelections(SettingsGroupABC):
     """Settings for parameter response in Settings Drawer"""
 
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         ENSEMBLE_DROPDOWN = "ensemble_dropdown"
         WELL_DROPDOWN = "well_dropdown"
         DATE_DROPDOWN = "date_dropdown"
@@ -158,8 +159,8 @@ class ParameterResponseSelections(SettingsGroupABC):
 
 
 class BarchartViewElementSettings(SettingsGroupABC):
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         CORRELATION_TYPE = "barchart_correlation_type"
 
     def __init__(self) -> None:
@@ -184,8 +185,8 @@ class BarchartViewElementSettings(SettingsGroupABC):
 
 
 class FormationsViewElementSettings(SettingsGroupABC):
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         DEPTH_OPTION = "formations_depth_option"
 
     def __init__(self) -> None:
@@ -210,12 +211,12 @@ class FormationsViewElementSettings(SettingsGroupABC):
 
 
 class BarchartViewElement(ViewElementABC):
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         BARCHART_GRAPH = "barchart_graph"
 
+    @dataclass(frozen=True)
     class Settings:
-        # pylint: disable=too-few-public-methods# pylint: disable=too-few-public-methods
         BARCHART_SETTINGS = "barchart_settings"
 
     def __init__(
@@ -235,8 +236,8 @@ class BarchartViewElement(ViewElementABC):
 
 
 class ScatterplotViewElement(ViewElementABC):
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         SCATTERPLOT_GRAPH = "scatterplot_graph"
 
     def layout(self) -> Union[str, Type[Component]]:
@@ -247,12 +248,12 @@ class ScatterplotViewElement(ViewElementABC):
 
 
 class FormationsViewElement(ViewElementABC):
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         FORMATIONS_GRAPH = "formations_graph"
 
+    @dataclass(frozen=True)
     class Settings:
-        # pylint: disable=too-few-public-methods
         FORMATIONS_SETTINGS = "formations_settings"
 
     def __init__(
@@ -272,14 +273,14 @@ class FormationsViewElement(ViewElementABC):
 
 
 class RftParameterResponse(ViewABC):
+    @dataclass(frozen=True)
     class ViewElements:
-        # pylint: disable=too-few-public-methods
         BARCHART_VIEW_ELEMENT = "barchart_view_element"
         SCATTERPLOT_VIEW_ELEMENT = "scatterplot_view_element"
         FORMATIONS_VIEW_ELEMENT = "formations_view_element"
 
+    @dataclass(frozen=True)
     class Settings:
-        # pylint: disable=too-few-public-methods
         SELECTIONS = "selections"
 
     def __init__(self, data_model: RftPlotterDataModel) -> None:

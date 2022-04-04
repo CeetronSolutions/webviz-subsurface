@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Tuple, Type, Union
 
 from dash.development.base_component import Component  # type: ignore
@@ -16,8 +17,8 @@ from .._figures._map_figure import MapFigure
 class MapPlotSelections(SettingsGroupABC):
     """Settings for map in Settings Drawer"""
 
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         MAP_ENSEMBLE = "map-ensemble"
         MAP_DATE_RANGE = "map-date-range"
         MAP_ZONES = "map-zones"
@@ -72,8 +73,8 @@ class MapPlotSelections(SettingsGroupABC):
 class MapPlotViewElementSettings(SettingsGroupABC):
     """Settings for map in view element settings"""
 
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         MAP_SIZE_BY = "map-size-by"
         MAP_COLOR_BY = "map-color-by"
 
@@ -124,12 +125,12 @@ class MapPlotViewElementSettings(SettingsGroupABC):
 
 
 class MapPlotViewElement(ViewElementABC):
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         MAP_PLOT = "map_plot"
 
+    @dataclass(frozen=True)
     class Settings:
-        # pylint: disable=too-few-public-methods
         MAP_PLOT_SETTINGS = "map_plot_settings"
 
     def __init__(
@@ -153,8 +154,8 @@ class MapPlotViewElement(ViewElementABC):
 class FormationsGraphSelections(SettingsGroupABC):
     """Settings for formations graph in Settings Drawer"""
 
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         FORMATIONS_ENSEMBLE = "formations-ensemble"
         FORMATIONS_WELL = "formations-well"
         FORMATIONS_DATE = "formations-date"
@@ -209,8 +210,8 @@ class FormationsGraphSelections(SettingsGroupABC):
 class FormationsGraphViewElementsSettings(SettingsGroupABC):
     """Settings for formations graph in view element settings"""
 
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         FORMATIONS_LINETYPE = "formations-linetype"
         FORMATIONS_DEPTHOPTION = "formations-depthoption"
 
@@ -257,12 +258,12 @@ class FormationsGraphViewElementsSettings(SettingsGroupABC):
 
 
 class FormationsGraphViewElement(ViewElementABC):
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         FORMATONS_GRAPH = "formations_graph"
 
+    @dataclass(frozen=True)
     class Settings:
-        # pylint: disable=too-few-public-methods
         FORMATION_GRAPH_SETTINGS = "formation_graph_settings"
 
     def __init__(
@@ -283,13 +284,13 @@ class FormationsGraphViewElement(ViewElementABC):
 
 
 class RftMap(ViewABC):
+    @dataclass(frozen=True)
     class ViewElements:
-        # pylint: disable=too-few-public-methods
         MAP_PLOT_ROW_ELEMENT = "map_plot_row_element"
         FORMATONS_GRAPH_ROW_ELEMENT = "formations_graph_row_element"
 
+    @dataclass(frozen=True)
     class Settings:
-        # pylint: disable=too-few-public-methods
         MAP_PLOT_SELECTIONS = "MapPlotSelections"
         FORMATION_GRAPH_SELECTIONS = "FormationGraphSelections"
 

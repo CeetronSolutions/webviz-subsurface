@@ -1,6 +1,7 @@
-from typing import List, Optional, Type, Union
+from dataclasses import dataclass
+from typing import List, Type, Union
 
-from dash.development.base_component import Component  # type: ignore
+from dash.development.base_component import Component
 from dash import html, Dash, Input, Output
 
 import webviz_core_components as wcc
@@ -12,90 +13,12 @@ from .._business_logic import RftPlotterDataModel, filter_frame
 from .._figures._crossplot_figure import update_crossplot
 from .._shared_settings import ViewFilters
 
-# class CrossplotGraphSelections(SettingsGroupABC):
-#     """Settings for crossplot in Settings Drawer"""
-
-#     # TODO: Move to shared settings when shared settings for selection of views is supported
-
-#     class Elements:
-#         # pylint: disable=too-few-public-methods
-#         FILTER_ENSEMBLES = "ensembles-crossplot"
-#         FILTER_WELLS = "well-crossplot"
-#         FILTER_ZONES = "zones-crossplot"
-#         FILTER_DATES = "dates-crossplot"
-
-#     def __init__(
-#         self,
-#         ensembles: List[str],
-#         well_names: List[str],
-#         zone_names: List[str],
-#         dates: List[str],
-#     ) -> None:
-#         super().__init__("Filters")
-
-#         self._ensembles = ensembles
-#         self._well_names = well_names
-#         self._zone_names = zone_names
-#         self._dates = dates
-
-#     def layout(self) -> Type[Component]:
-#         return html.Div(
-#             children=[
-#                 wcc.SelectWithLabel(
-#                     label="Ensembles",
-#                     size=min(4, len(self._ensembles)),
-#                     id=self.register_component_uuid(
-#                         CrossplotGraphSelections.Elements.FILTER_ENSEMBLES
-#                     ),
-#                     options=[
-#                         {"label": name, "value": name} for name in self._ensembles
-#                     ],
-#                     value=self._ensembles,
-#                     multi=True,
-#                 ),
-#                 wcc.SelectWithLabel(
-#                     label="Wells",
-#                     size=min(20, len(self._well_names)),
-#                     id=self.register_component_uuid(
-#                         CrossplotGraphSelections.Elements.FILTER_WELLS
-#                     ),
-#                     options=[
-#                         {"label": name, "value": name} for name in self._well_names
-#                     ],
-#                     value=self._well_names,
-#                     multi=True,
-#                 ),
-#                 wcc.SelectWithLabel(
-#                     label="Zones",
-#                     size=min(10, len(self._zone_names)),
-#                     id=self.register_component_uuid(
-#                         CrossplotGraphSelections.Elements.FILTER_ZONES
-#                     ),
-#                     options=[
-#                         {"label": name, "value": name} for name in self._zone_names
-#                     ],
-#                     value=self._zone_names,
-#                     multi=True,
-#                 ),
-#                 wcc.SelectWithLabel(
-#                     label="Dates",
-#                     size=min(10, len(self._dates)),
-#                     id=self.register_component_uuid(
-#                         CrossplotGraphSelections.Elements.FILTER_DATES
-#                     ),
-#                     options=[{"label": name, "value": name} for name in self._dates],
-#                     value=self._dates,
-#                     multi=True,
-#                 ),
-#             ]
-#         )
-
 
 class CrossplotViewElementSettings(SettingsGroupABC):
     """Settings for crossplot in view element settings"""
 
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         CROSSPLOT_COLOR_BY = "crossplot-color-by"
         CROSSPLOT_SIZE_BY = "crossplot-size-by"
 
@@ -146,12 +69,12 @@ class CrossplotViewElementSettings(SettingsGroupABC):
 
 
 class CrossplotViewElement(ViewElementABC):
+    @dataclass(frozen=True)
     class Elements:
-        # pylint: disable=too-few-public-methods
         CROSSPLOT_GRAPHS_CONTAINER = "crossplot_graph_container"
 
+    @dataclass(frozen=True)
     class Settings:
-        # pylint: disable=too-few-public-methods
         CROSSPLOT_GRAPH_SETTINGS = "crossplot_graph_settings"
 
     def __init__(
@@ -172,12 +95,12 @@ class CrossplotViewElement(ViewElementABC):
 
 
 class RftCrossplotSimVsObs(ViewABC):
+    @dataclass(frozen=True)
     class ViewElements:
-        # pylint: disable=too-few-public-methods
         CROSSPLOT_VIEW_ELEMENT = "crossplot_view_element"
 
+    @dataclass(frozen=True)
     class Settings:
-        # pylint: disable=too-few-public-methods
         CROSSPLOT_GRAPH_SELECTIONS = "crossplot_graph_selections"
 
     def __init__(
@@ -196,9 +119,6 @@ class RftCrossplotSimVsObs(ViewABC):
         self._shared_filters_id = shared_filters_id
 
     def _set_callbacks(self, app: Dash) -> None:
-        if not self.shared_settings_group(self._shared_filters_id):
-            return
-
         @app.callback(
             Output(
                 self.view_element_uuid(
@@ -261,70 +181,3 @@ class RftCrossplotSimVsObs(ViewABC):
             if df.empty:
                 return "No data matching the given filter criteria"
             return update_crossplot(df, sizeby, colorby)
-
-        # @app.callback(
-        #     Output(
-        #         self.view_element_uuid(
-        #             self.ViewElements.CROSSPLOT_VIEW_ELEMENT,
-        #             CrossplotViewElement.Elements.CROSSPLOT_GRAPHS_CONTAINER,
-        #         ),
-        #         "children",
-        #     ),
-        #     Input(
-        #         self.settings_group_uuid(
-        #             self.Settings.CROSSPLOT_GRAPH_SELECTIONS,
-        #             CrossplotGraphSelections.Elements.FILTER_WELLS,
-        #         ),
-        #         "value",
-        #     ),
-        #     Input(
-        #         self.settings_group_uuid(
-        #             self.Settings.CROSSPLOT_GRAPH_SELECTIONS,
-        #             CrossplotGraphSelections.Elements.FILTER_ZONES,
-        #         ),
-        #         "value",
-        #     ),
-        #     Input(
-        #         self.settings_group_uuid(
-        #             self.Settings.CROSSPLOT_GRAPH_SELECTIONS,
-        #             CrossplotGraphSelections.Elements.FILTER_DATES,
-        #         ),
-        #         "value",
-        #     ),
-        #     Input(
-        #         self.settings_group_uuid(
-        #             self.Settings.CROSSPLOT_GRAPH_SELECTIONS,
-        #             CrossplotGraphSelections.Elements.FILTER_ENSEMBLES,
-        #         ),
-        #         "value",
-        #     ),
-        #     Input(
-        #         self._crossplot_view_element.setting_group_uuid(
-        #             CrossplotViewElement.Settings.CROSSPLOT_GRAPH_SETTINGS,
-        #             CrossplotViewElementSettings.Elements.CROSSPLOT_SIZE_BY,
-        #         ),
-        #         "value",
-        #     ),
-        #     Input(
-        #         self._crossplot_view_element.setting_group_uuid(
-        #             CrossplotViewElement.Settings.CROSSPLOT_GRAPH_SETTINGS,
-        #             CrossplotViewElementSettings.Elements.CROSSPLOT_COLOR_BY,
-        #         ),
-        #         "value",
-        #     ),
-        # )
-        # def _crossplot(
-        #     wells: List[str],
-        #     zones: List[str],
-        #     dates: List[str],
-        #     ensembles: List[str],
-        #     sizeby: str,
-        #     colorby: str,
-        # ) -> Union[str, List[wcc.Graph]]:
-        #     df = filter_frame(
-        #         self._data_model.ertdatadf,
-        #         {"WELL": wells, "ZONE": zones, "DATE": dates, "ENSEMBLE": ensembles},
-        #     )
-        #     if df.empty:
-        #         return "No data matching the given filter criteria"
-        #     return update_crossplot(df, sizeby, colorby)

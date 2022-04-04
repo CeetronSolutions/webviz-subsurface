@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -96,6 +97,7 @@ forward_models.html?highlight=gendata_rft#MERGE_RFT_ERTOBS).
 
 """
 
+    @dataclass(frozen=True)
     class ViewIds:
         RFT_MAP = "RftMap"
         RFT_MISFIT_PER_REAL = "RftMisfitPerReal"
@@ -103,6 +105,7 @@ forward_models.html?highlight=gendata_rft#MERGE_RFT_ERTOBS).
         RFT_MISFIT_PER_OBSERVATION = "RftMisfitPerObservation"
         RFT_PARAMETER_RESPONSE = "RftParameterResponse"
 
+    @dataclass(frozen=True)
     class SharedSettingsIds:
         VIEW_FILTERS = "ViewFilters"
 
