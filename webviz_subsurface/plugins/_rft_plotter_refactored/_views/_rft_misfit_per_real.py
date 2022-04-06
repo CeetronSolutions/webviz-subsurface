@@ -18,13 +18,6 @@ class MisfitPlotViewElement(ViewElementABC):
     class Elements:
         MISFIT_GRAPHS_CONTAINER = "misfit_graphs_container"
 
-    def __init__(
-        self, flex_grow: int = 1, screenshot_filename: str = "webviz-screenshot.png"
-    ) -> None:
-        super().__init__(
-            flex_grow, screenshot_filename, ViewElementABC.LoadingMask.Graph
-        )
-
     def layout(self) -> Union[str, Type[Component]]:
         return html.Div(
             id=self.register_component_uuid(

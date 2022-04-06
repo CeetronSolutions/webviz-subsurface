@@ -216,9 +216,7 @@ class BarchartViewElement(ViewElementABC):
     def __init__(
         self, flex_grow: int = 1, screenshot_filename: str = "webviz-screenshot.png"
     ) -> None:
-        super().__init__(
-            flex_grow, screenshot_filename, ViewElementABC.LoadingMask.Graph
-        )
+        super().__init__(flex_grow, screenshot_filename)
 
         self.add_settings_group(
             BarchartViewElementSettings(), self.Settings.BARCHART_SETTINGS
@@ -235,13 +233,6 @@ class ScatterplotViewElement(ViewElementABC):
     @dataclass(frozen=True)
     class Elements:
         SCATTERPLOT_GRAPH = "scatterplot_graph"
-
-    def __init__(
-        self, flex_grow: int = 1, screenshot_filename: str = "webviz-screenshot.png"
-    ) -> None:
-        super().__init__(
-            flex_grow, screenshot_filename, ViewElementABC.LoadingMask.Graph
-        )
 
     def layout(self) -> Union[str, Type[Component]]:
         return wcc.Graph(
@@ -262,9 +253,7 @@ class FormationsViewElement(ViewElementABC):
     def __init__(
         self, flex_grow: int = 1, screenshot_filename: str = "webviz-screenshot.png"
     ) -> None:
-        super().__init__(
-            flex_grow, screenshot_filename, ViewElementABC.LoadingMask.Graph
-        )
+        super().__init__(flex_grow, screenshot_filename)
 
         self.add_settings_group(
             FormationsViewElementSettings(), self.Settings.FORMATIONS_SETTINGS

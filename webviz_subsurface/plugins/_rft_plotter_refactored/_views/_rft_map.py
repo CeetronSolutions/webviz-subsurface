@@ -138,9 +138,7 @@ class MapPlotViewElement(ViewElementABC):
         flex_grow: int = 1,
         screenshot_filename: str = "webviz-screenshot.png",
     ) -> None:
-        super().__init__(
-            flex_grow, screenshot_filename, ViewElementABC.LoadingMask.Graph
-        )
+        super().__init__(flex_grow, screenshot_filename)
 
         self.add_settings_group(
             MapPlotViewElementSettings(), self.Settings.MAP_PLOT_SETTINGS
@@ -271,9 +269,7 @@ class FormationsGraphViewElement(ViewElementABC):
     def __init__(
         self, flex_grow: int = 1, screenshot_filename: str = "webviz-screenshot.png"
     ) -> None:
-        super().__init__(
-            flex_grow, screenshot_filename, ViewElementABC.LoadingMask.Graph
-        )
+        super().__init__(flex_grow, screenshot_filename)
 
         self.add_settings_group(
             FormationsGraphViewElementsSettings(),
