@@ -11,6 +11,7 @@ from webviz_config.webviz_instance_info import WebvizRunMode
 from webviz_subsurface._utils.perf_timer import PerfTimer
 
 from ._provider_impl_file import ProviderImplFile
+from ._provider_impl_sumo import ProviderImplSumo
 from ._surface_discovery import (
     discover_observed_surface_files,
     discover_per_realization_surface_files,
@@ -109,6 +110,28 @@ class EnsembleSurfaceProviderFactory(WebvizFactory):
         LOGGER.info(
             f"Saved surface provider to backing store in {timer.elapsed_s():.2f}s ("
             f"discover={et_discover_s:.2f}s, write={et_write_s:.2f}s, ens_path={ens_path})"
+        )
+
+        return provider
+
+    def create_from_sumo(
+        self, field_name: str, case_name: str, iteration_id: str
+    ) -> EnsembleSurfaceProvider:
+        timer = PerfTimer()
+
+        string_to_hash = f"{field_name}__{case_name}__{case_name}"
+        storage_key = f"sumo__{_make_hash_string(string_to_hash)}"
+        provider = ProviderImplSumo.from_sumo(
+            self._storage_dir, storage_key, field_name, case_name, iteration_id
+        )
+
+        if not provider:
+            raise ValueError(
+                f"Failed to create sumo surface provider for {field_name}, {case_name}, {case_name}"
+            )
+
+        LOGGER.info(
+            f"Created sumo surface provider for {field_name}, {case_name}, {case_name} in {timer.elapsed_s():.2f}s"
         )
 
         return provider

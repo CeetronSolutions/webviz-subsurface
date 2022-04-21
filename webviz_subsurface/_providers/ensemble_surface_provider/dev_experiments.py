@@ -38,8 +38,11 @@ def main() -> None:
         root_storage_dir, allow_storage_writes=True, avoid_copying_surfaces=False
     )
 
-    provider: EnsembleSurfaceProvider = factory.create_from_ensemble_surface_files(
-        ensemble_path
+    # provider: EnsembleSurfaceProvider = factory.create_from_ensemble_surface_files(
+    #     ensemble_path
+    # )
+    provider: EnsembleSurfaceProvider = factory.create_from_sumo(
+        field_name="DROGON", case_name="21.x.0.dev_2022-02-03_rc7", iteration_id="0"
     )
 
     all_attributes = provider.attributes()
@@ -60,57 +63,71 @@ def main() -> None:
     all_realizations = provider.realizations()
     print(f"all_realizations={all_realizations}")
 
-    surf = provider.get_surface(
-        SimulatedSurfaceAddress(
-            attribute="oilthickness",
-            name="therys",
-            datestr="20200701_20180101",
-            realization=1,
+    #########################
+    if provider.__class__.__name__ == "ProviderImplFile":
+        surf = provider.get_surface(
+            SimulatedSurfaceAddress(
+                attribute="oilthickness",
+                name="therys",
+                datestr="20200701_20180101",
+                realization=1,
+            )
         )
-    )
-    print(surf)
+        print(surf)
 
-    surf = provider.get_surface(
-        ObservedSurfaceAddress(
-            attribute="amplitude_mean",
-            name="basevolantis",
-            datestr="20180701_20180101",
+        surf = provider.get_surface(
+            ObservedSurfaceAddress(
+                attribute="amplitude_mean",
+                name="basevolantis",
+                datestr="20180701_20180101",
+            )
         )
-    )
-    print(surf)
+        print(surf)
 
-    # surf = provider.get_surface(
-    #     StatisticalSurfaceAddress(
-    #         attribute="amplitude_mean",
-    #         name="basevolantis",
-    #         datestr="20180701_20180101",
-    #         statistic=SurfaceStatistic.P10,
-    #         realizations=[0, 1],
-    #     )
-    # )
-    # print(surf)
+        # surf = provider.get_surface(
+        #     StatisticalSurfaceAddress(
+        #         attribute="amplitude_mean",
+        #         name="basevolantis",
+        #         datestr="20180701_20180101",
+        #         statistic=SurfaceStatistic.P10,
+        #         realizations=[0, 1],
+        #     )
+        # )
+        # print(surf)
 
-    # surf = provider.get_surface(
-    #     StatisticalSurfaceAddress(
-    #         attribute="amplitude_mean",
-    #         name="basevolantis",
-    #         datestr="20180701_20180101",
-    #         statistic=SurfaceStatistic.P10,
-    #         realizations=all_realizations,
-    #     )
-    # )
-    # print(surf)
+        # surf = provider.get_surface(
+        #     StatisticalSurfaceAddress(
+        #         attribute="amplitude_mean",
+        #         name="basevolantis",
+        #         datestr="20180701_20180101",
+        #         statistic=SurfaceStatistic.P10,
+        #         realizations=all_realizations,
+        #     )
+        # )
+        # print(surf)
 
-    surf = provider.get_surface(
-        StatisticalSurfaceAddress(
-            attribute="ds_extract_postprocess-refined8",
-            name="topvolantis",
-            datestr=None,
-            statistic=SurfaceStatistic.P10,
-            realizations=all_realizations,
+        surf = provider.get_surface(
+            StatisticalSurfaceAddress(
+                attribute="ds_extract_postprocess-refined8",
+                name="topvolantis",
+                datestr=None,
+                statistic=SurfaceStatistic.P10,
+                realizations=all_realizations,
+            )
         )
-    )
-    print(surf)
+        print(surf)
+
+    #########################
+    if provider.__class__.__name__ == "ProviderImplSumo":
+        surf = provider.get_surface(
+            SimulatedSurfaceAddress(
+                attribute="ds_extract_geogrid",
+                name="Therys Fm. Top",
+                datestr=None,
+                realization=1,
+            )
+        )
+        print(surf)
 
 
 # Running:

@@ -1,0 +1,16 @@
+title: Sumo Testing
+
+shared_settings:
+  scratch_ensembles:
+    DUMMY_SUMO_ITER: ../webviz-subsurface-testdata/01_drogon_ahm/realization-*/iter-0
+
+options:
+  menu:
+    initially_pinned: True
+
+layout:
+  - page: Sumo Test
+    content:
+      - MapViewerFMU:
+          ensembles:
+            - DUMMY_SUMO_ITER

@@ -88,13 +88,23 @@ drogon_well_picks/extract_well_picks_from_rms.py)
             EnsembleFaultPolygonsProviderFactory.instance()
         )
 
-        self._ensemble_surface_providers = {
-            ens: surface_provider_factory.create_from_ensemble_surface_files(
-                webviz_settings.shared_settings["scratch_ensembles"][ens],
-                attribute_filter=attributes,
-            )
-            for ens in ensembles
-        }
+        print(">>>>>>>>>>>>>>>>>>")
+        if len(ensembles) == 1 and ensembles[0] == "DUMMY_SUMO_ITER":
+            self._ensemble_surface_providers = {
+                "DUMMY_SUMO_ITER": surface_provider_factory.create_from_sumo(
+                    field_name="DROGON",
+                    case_name="21.x.0.dev_2022-03-17_DEMO",
+                    iteration_id="0",
+                )
+            }
+        else:
+            self._ensemble_surface_providers = {
+                ens: surface_provider_factory.create_from_ensemble_surface_files(
+                    webviz_settings.shared_settings["scratch_ensembles"][ens],
+                    attribute_filter=attributes,
+                )
+                for ens in ensembles
+            }
         self._surface_server = SurfaceServer.instance(app)
 
         self.well_pick_provider = None
