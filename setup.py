@@ -71,6 +71,7 @@ setup(
             "SwatinitQC = webviz_subsurface.plugins:SwatinitQC",
             "TornadoPlotterFMU = webviz_subsurface.plugins:TornadoPlotterFMU",
             "VolumetricAnalysis = webviz_subsurface.plugins:VolumetricAnalysis",
+            "VolumetricAnalysisRefactored = webviz_subsurface.plugins:VolumetricAnalysisRefactored",
             "WellCrossSection = webviz_subsurface.plugins:WellCrossSection",
             "WellCrossSectionFMU = webviz_subsurface.plugins:WellCrossSectionFMU",
             "AssistedHistoryMatchingAnalysis = webviz_subsurface.plugins:AssistedHistoryMatchingAnalysis",
@@ -100,7 +101,7 @@ setup(
         "scipy>=1.2",
         "statsmodels>=0.12.1",  # indirect dependency through https://plotly.com/python/linear-fits/
         "webviz-config>=0.3.8",
-        "webviz-core-components>=0.5.6",
+        "webviz-core-components>=0.5.5",
         "webviz-subsurface-components>=0.4.11",
         "xtgeo>=2.14",
     ],

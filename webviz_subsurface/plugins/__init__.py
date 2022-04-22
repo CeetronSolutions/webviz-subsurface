@@ -59,6 +59,7 @@ from ._surface_with_seismic_cross_section import SurfaceWithSeismicCrossSection
 from ._swatinit_qc import SwatinitQC
 from ._tornado_plotter_fmu import TornadoPlotterFMU
 from ._volumetric_analysis import VolumetricAnalysis
+from ._volumetric_analysis_refactored import VolumetricAnalysisRefactored
 from ._well_analysis import WellAnalysis
 from ._well_completions import WellCompletions
 from ._well_cross_section import WellCrossSection
