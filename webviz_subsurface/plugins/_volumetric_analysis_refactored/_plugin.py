@@ -2,6 +2,7 @@ from typing import Callable, List, Optional, Tuple
 from pathlib import Path
 
 import pandas as pd
+from tables import Filters
 from webviz_config import WebvizPluginABC, WebvizSettings
 from webviz_config.common_cache import CACHE
 from webviz_config.webviz_assets import WEBVIZ_ASSETS
@@ -14,9 +15,23 @@ from webviz_subsurface._models import (
     caching_ensemble_set_model_factory,
 )
 from webviz_subsurface._models.inplace_volumes_model import extract_volumes
+from .shared_settings import PlotControls, Filters
 
-from .views import InplaceDistributions, Tables, TornadoPlots, SensitivityComparison, SourceComparison, EnsembleComparison, FipFile
+from .views import (
+    InplaceDistributionsCustomPlotting,
+    InplaceDistributionsPlotsPerZoneRegion,
+    InplaceDistributionsConvergencePlot,
+    Tables,
+    TornadoPlots,
+    SensitivityComparison,
+    SourceComparison,
+    EnsembleComparison,
+    FipFile,
+)
+
+from ._layout_elements import ElementIds
 from .business_logic.volume_validator_and_combinator import VolumeValidatorAndCombinator
+
 
 class VolumetricAnalysisRefactored(WebvizPluginABC):
     def __init__(
@@ -80,7 +95,47 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         )
         self.theme = webviz_settings.theme
 
-        self.add_view(InplaceDistributions(), "InplaceDistributions")
+        # Inplace distributions views
+
+        self.add_view(
+            InplaceDistributionsCustomPlotting(self.volumes_model),
+            ElementIds.InplaceDistributions.CustomPlotting.ID,
+            "Inplace distributions",
+        )
+
+        self.add_view(
+            InplaceDistributionsPlotsPerZoneRegion(self.volumes_model),
+            ElementIds.InplaceDistributions.PlotsPerZoneRegion.ID,
+            "Inplace distributions",
+        )
+
+        self.add_view(
+            InplaceDistributionsConvergencePlot(self.volumes_model),
+            ElementIds.InplaceDistributions.ConvergencePlot.ID,
+            "Inplace distributions",
+        )
+
+        self.add_shared_settings_group(
+            PlotControls(self.volumes_model),
+            ElementIds.InplaceDistributions.Settings.PlotControls.ID,
+            visible_in_views=[
+                self.view(ElementIds.InplaceDistributions.CustomPlotting.ID)
+                .get_uuid()
+                .to_string(),
+                self.view(ElementIds.InplaceDistributions.PlotsPerZoneRegion.ID)
+                .get_uuid()
+                .to_string(),
+                self.view(ElementIds.InplaceDistributions.ConvergencePlot.ID)
+                .get_uuid()
+                .to_string(),
+            ],
+        )
+
+        self.add_shared_settings_group(
+            Filters(self.volumes_model),
+            ElementIds.InplaceDistributions.Settings.Filters.ID,
+        )
+
         self.add_view(Tables(), "Tables")
 
         if self.volumes_model.sensrun:
@@ -98,14 +153,13 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         if self.disjoint_set_df:
             self.add_view(FipFile(), "FipFile")
 
+
 @CACHE.memoize(timeout=CACHE.TIMEOUT)
 @webvizstore
 def read_csv(csv_file: Path) -> pd.DataFrame:
     return pd.read_csv(csv_file)
 
+
 @webvizstore
 def get_path(path: Path) -> Path:
     return Path(path)
-
-
-
