@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 from tables import Filters
+from dash import ALL, Input, Output, State, callback, callback_context, no_update
+from dash.exceptions import PreventUpdate
 from webviz_config import WebvizPluginABC, WebvizSettings
 from webviz_config.common_cache import CACHE
 from webviz_config.webviz_assets import WEBVIZ_ASSETS
@@ -22,7 +24,8 @@ from .views import (
     InplaceDistributionsPlotsPerZoneRegion,
     InplaceDistributionsConvergencePlot,
     Tables,
-    TornadoPlots,
+    TornadoPlotsCustom,
+    TornadoPlotsBulk,
     SensitivityComparison,
     SourceComparison,
     EnsembleComparison,
@@ -45,7 +48,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         non_net_facies: Optional[List[str]] = None,
         fip_file: Path = None,
     ):
-        super().__init__()
+        super().__init__(stretch=True)
 
         WEBVIZ_ASSETS.add(
             Path(webviz_subsurface.__file__).parent
@@ -95,6 +98,10 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         )
         self.theme = webviz_settings.theme
 
+        # Stores
+
+        self.add_store("selections", WebvizPluginABC.StorageType.SESSION)
+
         # Inplace distributions views
 
         self.add_view(
@@ -139,7 +146,10 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         self.add_view(Tables(), "Tables")
 
         if self.volumes_model.sensrun:
-            self.add_view(TornadoPlots(), "TornadoPlots")
+            self.add_view(TornadoPlotsCustom(), ElementIds.TornadoPlots.Custom.ID, "Tornadoplots")
+
+        if self.volumes_model.sensrun:
+            self.add_view(TornadoPlotsBulk(), ElementIds.TornadoPlots.BulkVsStoiipGiip.ID, "Tornadoplots")
 
         if len(self.volumes_model.sources) > 1:
             self.add_view(SourceComparison(), "SourceComparison")
@@ -152,6 +162,58 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
 
         if self.disjoint_set_df:
             self.add_view(FipFile(), "FipFile")
+
+    def _set_callbacks(self) -> None:
+        @callback(
+            Output(self.get_store_id("selections"), "data"),
+            Input({"id": self.shared_settings_group(ElementIds.InplaceDistributions.Settings.PlotControls.ID).get_uuid().to_string(), "selector": ALL}, "value"),
+            Input(
+                {"id": self.shared_settings_group(ElementIds.InplaceDistributions.Settings.Filters.ID).get_uuid().to_string(), "selector": ALL, "type": ALL},
+                "value",
+            ),
+            State(self.get_store_id("selections"), "data"),
+            State({"id": self.shared_settings_group(ElementIds.InplaceDistributions.Settings.PlotControls.ID).get_uuid().to_string(), "selector": ALL}, "id"),
+            State(
+                {"id": self.shared_settings_group(ElementIds.InplaceDistributions.Settings.Filters.ID).get_uuid().to_string(), "selector": ALL, "type": ALL}, "id"
+            ),
+        )
+        def _update_selections(
+            selectors: list,
+            filters: list,
+            previous_selection: dict,
+            selector_ids: list,
+            filter_ids: list,
+        ) -> dict:
+            ctx = callback_context.triggered[0]
+            if ctx["prop_id"] == ".":
+                raise PreventUpdate
+
+            if previous_selection is None:
+                previous_selection = {}
+
+            page_selections = {
+                id_value["selector"]: values
+                for id_value, values in zip(selector_ids, selectors)
+            }
+            page_selections["filters"] = {
+                id_value["selector"]: values
+                for id_value, values in zip(filter_ids, filters)
+            }
+
+            page_selections.update(ctx_clicked=ctx["prop_id"])
+
+            # check if a page needs to be updated due to page refresh or
+            # change in selections/filters
+            equal_list = []
+            for selector, values in page_selections.items():
+                if selector != "ctx_clicked":
+                    equal_list.append(
+                        values == previous_selection[selector]
+                    )
+            page_selections.update(update=not all(equal_list))
+
+            previous_selection = page_selections
+            return previous_selection
 
 
 @CACHE.memoize(timeout=CACHE.TIMEOUT)

@@ -3,8 +3,12 @@ from .inplace_distributions import (
     InplaceDistributionsPlotsPerZoneRegion,
     InplaceDistributionsConvergencePlot,
 )
+from .tornado_plots import (
+    TornadoPlotsBulk,
+    TornadoPlotsCustom
+)
 from ._tables import Tables
-from ._tornado_plots import TornadoPlots
+from .tornado_plots._tornado_plots_custom import TornadoPlotsCustom
 from ._source_comparison import SourceComparison
 from ._sensitivity_comparison import SensitivityComparison
 from ._ensemble_comparison import EnsembleComparison

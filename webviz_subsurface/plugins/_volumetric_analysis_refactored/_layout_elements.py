@@ -16,3 +16,10 @@ class ElementIds:
 
             class Filters:
                 ID = "inplace_distributions_filters"
+
+    class TornadoPlots:
+        class Custom:
+            ID = "tornado_plots_custom"
+
+        class BulkVsStoiipGiip:
+            ID = "tornado_plots_bulk"

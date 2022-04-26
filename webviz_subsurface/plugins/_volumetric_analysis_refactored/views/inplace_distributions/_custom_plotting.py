@@ -20,22 +20,9 @@ class StockOilTankPlot(ViewElementABC):
         super().__init__()
 
     def inner_layout(self) -> Component:
-        return html.Div(
-            children=[
-                html.Div(
-                    id=self.register_component_uuid("custom-plotting"),
-                    style={"display": "block"},
-                ),
-                html.Div(
-                    id=self.register_component_uuid("plots-per-zone"),
-                    style={"display": "none"},
-                ),
-                html.Div(
-                    id=self.register_component_uuid("convergence-plot"),
-                    style={"display": "none"},
-                ),
-            ]
-        )
+        return wcc.Graph(
+                config={"displayModeBar": False},
+            )
 
     def set_callbacks(self) -> None:
         return None

@@ -5,7 +5,7 @@ from webviz_config.webviz_plugin_subclasses import (
 )
 from dash.development.base_component import Component
 
-from dash import Input, Output, State, callback, html
+from dash import ALL, Input, Output, State, callback, html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
@@ -54,7 +54,7 @@ class PlotControls(SettingsGroupABC):
             dropdowns.append(
                 wcc.Dropdown(
                     label=selector,
-                    id=self.register_component_uuid(selector),
+                    id={"id": self.get_uuid().to_string(), "selector": selector},
                     options=[{"label": elm, "value": elm} for elm in elements],
                     value=value,
                     clearable=selector in ["Subplots", "Color by", "Y Response"],
