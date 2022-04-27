@@ -4,6 +4,11 @@ class ElementIds:
         class CustomPlotting:
             ID = "inplace_distributions_custom_plots"
 
+            class StockOilTankPlot:
+                ID = "stock_oil_tank_plot"
+
+                GRAPH = "graph"
+
         class PlotsPerZoneRegion:
             ID = "inplace_distributions_plots_per_zone_region"
 

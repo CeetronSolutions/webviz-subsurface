@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 from pathlib import Path
 
 import pandas as pd
@@ -101,11 +101,12 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         # Stores
 
         self.add_store("selections", WebvizPluginABC.StorageType.SESSION)
+        self.add_store("initial-load-info", WebvizPluginABC.StorageType.MEMORY)
 
         # Inplace distributions views
 
         self.add_view(
-            InplaceDistributionsCustomPlotting(self.volumes_model),
+            InplaceDistributionsCustomPlotting(self.volumes_model, self.theme),
             ElementIds.InplaceDistributions.CustomPlotting.ID,
             "Inplace distributions",
         )
@@ -146,10 +147,16 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         self.add_view(Tables(), "Tables")
 
         if self.volumes_model.sensrun:
-            self.add_view(TornadoPlotsCustom(), ElementIds.TornadoPlots.Custom.ID, "Tornadoplots")
+            self.add_view(
+                TornadoPlotsCustom(), ElementIds.TornadoPlots.Custom.ID, "Tornadoplots"
+            )
 
         if self.volumes_model.sensrun:
-            self.add_view(TornadoPlotsBulk(), ElementIds.TornadoPlots.BulkVsStoiipGiip.ID, "Tornadoplots")
+            self.add_view(
+                TornadoPlotsBulk(),
+                ElementIds.TornadoPlots.BulkVsStoiipGiip.ID,
+                "Tornadoplots",
+            )
 
         if len(self.volumes_model.sources) > 1:
             self.add_view(SourceComparison(), "SourceComparison")
@@ -165,21 +172,62 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
 
     def _set_callbacks(self) -> None:
         @callback(
-            Output(self.get_store_id("selections"), "data"),
-            Input({"id": self.shared_settings_group(ElementIds.InplaceDistributions.Settings.PlotControls.ID).get_uuid().to_string(), "selector": ALL}, "value"),
+            Output(self.get_store_uuid("selections"), "data"),
             Input(
-                {"id": self.shared_settings_group(ElementIds.InplaceDistributions.Settings.Filters.ID).get_uuid().to_string(), "selector": ALL, "type": ALL},
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.PlotControls.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
                 "value",
             ),
-            State(self.get_store_id("selections"), "data"),
-            State({"id": self.shared_settings_group(ElementIds.InplaceDistributions.Settings.PlotControls.ID).get_uuid().to_string(), "selector": ALL}, "id"),
+            Input(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Filters.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                    "type": ALL,
+                },
+                "value",
+            ),
+            Input(self.get_store_uuid("initial-load-info"), "data"),
+            Input("webviz-content-manager", "activeViewId"),
+            State(self.get_store_uuid("selections"), "data"),
             State(
-                {"id": self.shared_settings_group(ElementIds.InplaceDistributions.Settings.Filters.ID).get_uuid().to_string(), "selector": ALL, "type": ALL}, "id"
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.PlotControls.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
+            State(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Filters.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                    "type": ALL,
+                },
+                "id",
             ),
         )
         def _update_selections(
             selectors: list,
             filters: list,
+            initial_load: dict,
+            selected_view: str,
             previous_selection: dict,
             selector_ids: list,
             filter_ids: list,
@@ -204,16 +252,62 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
 
             # check if a page needs to be updated due to page refresh or
             # change in selections/filters
-            equal_list = []
-            for selector, values in page_selections.items():
-                if selector != "ctx_clicked":
-                    equal_list.append(
-                        values == previous_selection[selector]
-                    )
-            page_selections.update(update=not all(equal_list))
+            if initial_load[selected_view]:
+                page_selections.update(update=True)
+            else:
+                equal_list = []
+                for selector, values in page_selections.items():
+                    if selector != "ctx_clicked":
+                        equal_list.append(values == previous_selection[selector])
+                page_selections.update(update=not all(equal_list))
 
             previous_selection = page_selections
             return previous_selection
+
+        @callback(
+            Output(self.get_store_uuid("initial-load-info"), "data"),
+            Input("webviz-content-manager", "activeViewId"),
+            Input(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.PlotControls.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "tab": ALL,
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            Input(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Filters.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "tab": ALL,
+                    "selector": ALL,
+                    "type": ALL,
+                },
+                "value",
+            ),
+            State(self.get_store_uuid("initial-load-info"), "data"),
+        )
+        def _store_initial_load_info(
+            page_selected: str,
+            _selectors_changed: list,
+            _filters_changed: list,
+            initial_load: dict,
+        ) -> Dict[str, bool]:
+            """
+            Store info (True/False) reagarding if a page is initally loaded.
+            Updating filters or selectors will set the value to False
+            """
+            if initial_load is None:
+                initial_load = {}
+            initial_load[page_selected] = page_selected not in initial_load
+            return initial_load
 
 
 @CACHE.memoize(timeout=CACHE.TIMEOUT)

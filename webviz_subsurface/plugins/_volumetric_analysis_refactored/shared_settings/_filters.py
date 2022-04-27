@@ -78,11 +78,19 @@ class Filters(SettingsGroupABC):
         hide: bool,
     ) -> html.Div:
         return html.Div(
-            id=self.register_component_uuid(f"{selector}-{filter_type}"),
+            id={
+                "id": self.get_uuid().to_string(),
+                "wrapper": selector,
+                "type": filter_type,
+            },
             style={"display": "inline" if len(elements) > 1 and not hide else "none"},
             children=wcc.SelectWithLabel(
                 label=selector.lower().capitalize(),
-                id=self.register_component_uuid(f"{selector}-select-{filter_type}"),
+                id={
+                    "id": self.get_uuid().to_string(),
+                    "selector": selector,
+                    "type": filter_type,
+                },
                 options=[{"label": i, "value": i} for i in elements],
                 value=elements,
                 multi=True,
