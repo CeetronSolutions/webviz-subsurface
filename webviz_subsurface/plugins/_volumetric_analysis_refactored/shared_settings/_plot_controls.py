@@ -20,7 +20,21 @@ class PlotControls(SettingsGroupABC):
         self.selectors = ["ZONE", "REGION", "FACIES", "FIPNUM", "SET"]
 
     def layout(self) -> List[Component]:
-        return self.plot_selector_dropdowns()
+        return self.plot_selector_dropdowns() + [
+            html.Div(
+                style={"margin-top": "10px"},
+                children=wcc.RadioItems(
+                    label="Visualization below plot:",
+                    id={"id": self.get_uuid().to_string(), "selector": "bottom_viz"},
+                    options=[
+                        {"label": "Table", "value": "table"},
+                        {"label": "None", "value": "none"},
+                    ],
+                    vertical=False,
+                    value="table",
+                ),
+            )
+        ]
 
     def plot_selector_dropdowns(self) -> List[html.Div]:
         """Makes dropdowns for each selector"""

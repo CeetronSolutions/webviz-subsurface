@@ -17,7 +17,7 @@ from webviz_subsurface._models import (
     caching_ensemble_set_model_factory,
 )
 from webviz_subsurface._models.inplace_volumes_model import extract_volumes
-from .shared_settings import PlotControls, Filters
+from .shared_settings import PlotControls, Filters, Settings
 
 from .views import (
     InplaceDistributionsCustomPlotting,
@@ -106,7 +106,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         # Inplace distributions views
 
         self.add_view(
-            InplaceDistributionsCustomPlotting(self.volumes_model, self.theme),
+            InplaceDistributionsCustomPlotting(self.volumes_model),
             ElementIds.InplaceDistributions.CustomPlotting.ID,
             "Inplace distributions",
         )
@@ -126,6 +126,22 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         self.add_shared_settings_group(
             PlotControls(self.volumes_model),
             ElementIds.InplaceDistributions.Settings.PlotControls.ID,
+            visible_in_views=[
+                self.view(ElementIds.InplaceDistributions.CustomPlotting.ID)
+                .get_uuid()
+                .to_string(),
+                self.view(ElementIds.InplaceDistributions.PlotsPerZoneRegion.ID)
+                .get_uuid()
+                .to_string(),
+                self.view(ElementIds.InplaceDistributions.ConvergencePlot.ID)
+                .get_uuid()
+                .to_string(),
+            ],
+        )
+
+        self.add_shared_settings_group(
+            Settings(self.volumes_model, self.theme),
+            ElementIds.InplaceDistributions.Settings.Settings.ID,
             visible_in_views=[
                 self.view(ElementIds.InplaceDistributions.CustomPlotting.ID)
                 .get_uuid()
@@ -187,6 +203,17 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
             Input(
                 {
                     "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Settings.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            Input(
+                {
+                    "id": self.shared_settings_group(
                         ElementIds.InplaceDistributions.Settings.Filters.ID
                     )
                     .get_uuid()
@@ -196,6 +223,17 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 },
                 "value",
             ),
+            Input(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Settings.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "settings": "Colorscale",
+                },
+                "colorscale",
+            ),
             Input(self.get_store_uuid("initial-load-info"), "data"),
             Input("webviz-content-manager", "activeViewId"),
             State(self.get_store_uuid("selections"), "data"),
@@ -203,6 +241,17 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 {
                     "id": self.shared_settings_group(
                         ElementIds.InplaceDistributions.Settings.PlotControls.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
+            State(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Settings.ID
                     )
                     .get_uuid()
                     .to_string(),
@@ -225,11 +274,14 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         )
         def _update_selections(
             selectors: list,
+            settings: list,
             filters: list,
+            colorscale: str,
             initial_load: dict,
             selected_view: str,
             previous_selection: dict,
             selector_ids: list,
+            settings_ids: list,
             filter_ids: list,
         ) -> dict:
             ctx = callback_context.triggered[0]
@@ -241,18 +293,21 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
 
             page_selections = {
                 id_value["selector"]: values
-                for id_value, values in zip(selector_ids, selectors)
+                for id_value, values in zip(
+                    selector_ids + settings_ids, selectors + settings
+                )
             }
             page_selections["filters"] = {
                 id_value["selector"]: values
                 for id_value, values in zip(filter_ids, filters)
             }
 
+            page_selections.update(Colorscale=colorscale[0] if colorscale else None)
             page_selections.update(ctx_clicked=ctx["prop_id"])
 
             # check if a page needs to be updated due to page refresh or
             # change in selections/filters
-            if initial_load[selected_view]:
+            if initial_load[selected_view] or len(previous_selection) == 0:
                 page_selections.update(update=True)
             else:
                 equal_list = []
@@ -274,7 +329,17 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     )
                     .get_uuid()
                     .to_string(),
-                    "tab": ALL,
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            Input(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Settings.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
                     "selector": ALL,
                 },
                 "value",
@@ -286,7 +351,6 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     )
                     .get_uuid()
                     .to_string(),
-                    "tab": ALL,
                     "selector": ALL,
                     "type": ALL,
                 },
@@ -297,6 +361,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         def _store_initial_load_info(
             page_selected: str,
             _selectors_changed: list,
+            _settings_changed: list,
             _filters_changed: list,
             initial_load: dict,
         ) -> Dict[str, bool]:

@@ -41,10 +41,10 @@ def create_data_table(
     style_cell: Optional[dict] = None,
     style_cell_conditional: Optional[list] = None,
     style_data_conditional: Optional[list] = None,
-) -> Union[list, wcc.WebvizPluginPlaceholder]:
+) -> Optional[dash_table.DataTable]:
 
     if not data:
-        return []
+        return None
 
     if selectors is None:
         selectors = []
@@ -64,25 +64,21 @@ def create_data_table(
     )
     style_data_conditional.extend(fluid_table_style())
 
-    return wcc.WebvizPluginPlaceholder(
-        id={"request": "table_data", "table_id": table_id["table_id"]},
-        buttons=["expand", "download"],
-        children=dash_table.DataTable(
-            id=table_id,
-            sort_action="native",
-            sort_mode="multi",
-            filter_action="native",
-            columns=columns,
-            data=data,
-            style_as_list_view=True,
-            style_cell=style_cell,
-            style_cell_conditional=conditional_cell_style,
-            style_data_conditional=style_data_conditional,
-            style_table={
-                "height": height,
-                "overflowY": "auto",
-            },
-        ),
+    return dash_table.DataTable(
+        id=table_id,
+        sort_action="native",
+        sort_mode="multi",
+        filter_action="native",
+        columns=columns,
+        data=data,
+        style_as_list_view=True,
+        style_cell=style_cell,
+        style_cell_conditional=conditional_cell_style,
+        style_data_conditional=style_data_conditional,
+        style_table={
+            "height": height,
+            "overflowY": "auto",
+        },
     )
 
 

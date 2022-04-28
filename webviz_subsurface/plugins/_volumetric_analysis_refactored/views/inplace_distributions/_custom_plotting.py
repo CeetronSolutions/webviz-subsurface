@@ -1,19 +1,13 @@
-from typing import List, Optional, Type
-from xml.dom.minidom import Element
-import numpy as np
-import pandas as pd
-from pandas.api.types import is_numeric_dtype
+from typing import Tuple
 from webviz_config import WebvizConfigTheme
 from webviz_config.webviz_plugin_subclasses import (
     ViewABC,
     ViewElementABC,
-    ViewLayoutElement,
-    LayoutElementType,
 )
 from dash.development.base_component import Component
-
-from dash import Input, Output, State, callback, html, dash_table
 from dash.exceptions import PreventUpdate
+
+from dash import Input, Output, callback, html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
@@ -23,127 +17,88 @@ from webviz_subsurface._abbreviations.volume_terminology import (
 )
 from webviz_subsurface._figures import create_figure
 from ...utils.table_and_figure_utils import (
-    create_data_table,
-    create_table_columns,
     fluid_annotation,
 )
-from ...utils.utils import move_to_end_of_list, to_ranges
+from .utils import make_tables
 
 from ..._layout_elements import ElementIds
 
 
-class StockOilTankPlot(ViewElementABC):
-    def __init__(self, figure: dict) -> None:
+class Plot(ViewElementABC):
+    def __init__(self) -> None:
         super().__init__()
-        self.figure = figure
 
     def inner_layout(self) -> Component:
         return wcc.Graph(
             id=self.register_component_uuid(
-                ElementIds.InplaceDistributions.CustomPlotting.StockOilTankPlot.GRAPH
+                ElementIds.InplaceDistributions.CustomPlotting.Plot.GRAPH
             ),
             config={"displayModeBar": False},
-            figure=self.figure,
+            style={"height": "86vh"},
         )
 
 
 class DataTable(ViewElementABC):
     def __init__(
         self,
-        columns: list,
-        data: List[dict],
-        selectors: Optional[list] = None,
-        style_cell: Optional[dict] = None,
-        style_cell_conditional: Optional[list] = None,
-        style_data_conditional: Optional[list] = None,
     ) -> None:
         super().__init__()
-        self.columns = columns
-        self.data = data
-        self.selectors = selectors
-        self.style_cell = style_cell
-        self.style_cell_conditional = style_cell_conditional
-        self.style_data_conditional = style_data_conditional
 
     def inner_layout(self) -> Component:
-        if not self.data:
-            return None
-
-        if self.selectors is None:
-            self.selectors = []
-        conditional_cell_style = [
-            {
-                "if": {
-                    "column_id": self.selectors
-                    + ["Response", "Property", "Sensitivity"]
-                },
-                "width": "10%",
-                "textAlign": "left",
-            },
-            {"if": {"column_id": "FLUID_ZONE"}, "width": "10%", "textAlign": "right"},
-        ]
-        if self.style_cell_conditional is not None:
-            conditional_cell_style.extend(self.style_cell_conditional)
-
-        self.style_data_conditional = (
-            self.style_data_conditional
-            if self.style_data_conditional is not None
-            else []
-        )
-        self.style_data_conditional.extend(self.fluid_table_style())
-
-        return (
-            dash_table.DataTable(
-                id=self.register_component_uuid("table"),
-                sort_action="native",
-                sort_mode="multi",
-                filter_action="native",
-                columns=self.columns,
-                data=self.data,
-                style_as_list_view=True,
-                style_cell=self.style_cell,
-                style_cell_conditional=conditional_cell_style,
-                style_data_conditional=self.style_data_conditional,
-                style_table={
-                    "overflowY": "auto",
-                },
-            ),
-        )
-
-    def fluid_table_style(self) -> list:
-        fluid_colors = {
-            "oil": "#007079",
-            "gas": "#FF1243",
-            "water": "#ADD8E6",
-        }
-        return [
-            {
-                "if": {
-                    "filter_query": "{FLUID_ZONE} = " + f"'{fluid}'",
-                    "column_id": "FLUID_ZONE",
-                },
-                "color": color,
-                "fontWeight": "bold",
-            }
-            for fluid, color in fluid_colors.items()
-        ]
+        return []
 
 
 class InplaceDistributionsCustomPlotting(ViewABC):
-    def __init__(
-        self, volumes_model: InplaceVolumesModel, theme: WebvizConfigTheme
-    ) -> None:
+    def __init__(self, volumes_model: InplaceVolumesModel) -> None:
         super().__init__("Custom plotting")
 
         self.volumes_model = volumes_model
-        self.theme = theme
+
+        column = self.add_column()
+
+        self.plot = Plot()
+        column.add_view_element(
+            self.plot, ElementIds.InplaceDistributions.CustomPlotting.Plot.ID
+        )
+
+        self.response_table = DataTable()
+        column.add_view_element(
+            self.response_table,
+            ElementIds.InplaceDistributions.CustomPlotting.ResponseTable.ID,
+        )
+
+        self.property_table = DataTable()
+        column.add_view_element(
+            self.property_table,
+            ElementIds.InplaceDistributions.CustomPlotting.PropertyTable.ID,
+        )
 
     def set_callbacks(self) -> None:
         @callback(
-            Output(self.get_uuid().to_string(), "children"),
+            Output(
+                self.plot.component_uuid(
+                    ElementIds.InplaceDistributions.CustomPlotting.Plot.GRAPH
+                ).to_string(),
+                "figure",
+            ),
+            Output(
+                self.plot.component_uuid(
+                    ElementIds.InplaceDistributions.CustomPlotting.Plot.GRAPH
+                ).to_string(),
+                "style",
+            ),
+            Output(self.response_table.get_uuid().to_string(), "children"),
+            Output(self.response_table.get_uuid().to_string(), "hidden"),
+            Output(self.property_table.get_uuid().to_string(), "children"),
+            Output(self.property_table.get_uuid().to_string(), "hidden"),
             Input(self.get_store_uuid("selections"), "data"),
         )
-        def _update_page_custom(selections: dict) -> Component:
+        def _update_plot_and_tables(
+            selections: dict,
+        ) -> Tuple[dict, dict, Component, bool, Component, bool]:
+            if selections is None:
+                raise PreventUpdate
+
             if not selections["update"]:
                 raise PreventUpdate
 
@@ -192,26 +147,19 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                 .reset_index()
             )
 
-            theme_colors = self.theme.plotly_theme.get("layout", {}).get("colorway", [])
-
-            selections["Fluid annotation"] = True
-            selections["X axis matches"] = True
-            selections["Y axis matches"] = True
-            selections["bottom_viz"] = "table"
-
             figure = (
                 create_figure(
                     plot_type=selections["Plot type"],
                     data_frame=df_for_figure,
                     x=selections["X Response"],
                     y=selections["Y Response"],
-                    nbins=15,
+                    nbins=selections["hist_bins"],
                     facet_col=selections["Subplots"],
                     color=selections["Color by"],
-                    color_discrete_sequence=theme_colors,
-                    color_continuous_scale=theme_colors,
-                    barmode="overlay",
-                    boxmode="overlay",
+                    color_discrete_sequence=selections["Colorscale"],
+                    color_continuous_scale=selections["Colorscale"],
+                    barmode=selections["barmode"],
+                    boxmode=selections["barmode"],
                     layout=dict(
                         title=dict(
                             text=(
@@ -244,125 +192,32 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                 )
             )
 
-            plot = StockOilTankPlot(figure)
-
-            column = ViewLayoutElement(
-                layout_element_type=LayoutElementType.COLUMN, parent_view=self
+            tables = make_tables(
+                dframe=dframe,
+                responses=list({selections["X Response"], selections["Y Response"]}),
+                groups=groups,
+                volumemodel=self.volumes_model,
+                selections=selections,
+                table_type="Statistics table",
+                view_height=37,
             )
 
-            column.add_view_element(plot, "Plot")
-            i = 0
+            response_table_hidden = True
+            property_table_hidden = True
+
             if selections["bottom_viz"] == "table":
-                for table in self.make_tables(
-                    dframe=dframe,
-                    responses=list(
-                        {selections["X Response"], selections["Y Response"]}
-                    ),
-                    groups=groups,
-                    volumemodel=self.volumes_model,
-                    selections=selections,
-                    table_type="Statistics table",
-                    view_height=37,
-                ):
-                    column.add_view_element(table, f"Table-{i}")
-                    i += 1
+                if tables[0] is not None:
+                    response_table_hidden = False
+                if tables[1] is not None:
+                    property_table_hidden = False
 
-            return column.layout
-
-    def make_tables(
-        self,
-        dframe: pd.DataFrame,
-        responses: list,
-        volumemodel: InplaceVolumesModel,
-        selections: dict,
-        table_type: str,
-        view_height: float,
-        groups: Optional[list] = None,
-    ) -> List[DataTable]:
-
-        groups = groups if groups is not None else []
-
-        if table_type == "Statistics table":
-            statcols = ["Mean", "Stddev", "P90", "P10", "Min", "Max"]
-            groups = [x for x in groups if x != "REAL"]
-            responses = [x for x in responses if x != "REAL" and x is not None]
-            df_groups = dframe.groupby(groups) if groups else [(None, dframe)]
-
-            data_properties = []
-            data_volcols = []
-            for response in responses:
-                if not is_numeric_dtype(dframe[response]):
-                    continue
-                for name, df in df_groups:
-                    values = df[response]
-                    data = {
-                        "Mean": values.mean(),
-                        "Stddev": values.std(),
-                        "P10": np.nanpercentile(values, 90),
-                        "P90": np.nanpercentile(values, 10),
-                        "Min": values.min(),
-                        "Max": values.max(),
-                    }
-                    if "FLUID_ZONE" not in groups:
-                        data.update(
-                            FLUID_ZONE=(" + ").join(selections["filters"]["FLUID_ZONE"])
-                        )
-
-                    for idx, group in enumerate(groups):
-                        data[group] = (
-                            name if not isinstance(name, tuple) else list(name)[idx]
-                        )
-                    if response in volumemodel.volume_columns:
-                        data["Response"] = response
-                        data_volcols.append(data)
-                    else:
-                        data["Property"] = response
-                        data_properties.append(data)
-
-            if data_volcols and data_properties:
-                view_height = view_height / 2
-
-            return [
-                DataTable(
-                    selectors=volumemodel.selectors,
-                    columns=create_table_columns(
-                        columns=move_to_end_of_list(
-                            "FLUID_ZONE", [col] + groups + statcols
-                        ),
-                        text_columns=[col] + groups,
-                        use_si_format=statcols if col == "Response" else None,
-                    ),
-                    data=data,
-                )
-                for col, data in zip(
-                    ["Response", "Property"], [data_volcols, data_properties]
-                )
-            ]
-
-        # if table type Mean table
-        groupby_real = (
-            selections["Group by"] is not None and "REAL" in selections["Group by"]
-        )
-        if "REAL" in groups and not groupby_real:
-            groups.remove("REAL")
-
-        columns = responses + [x for x in groups if x not in responses]
-        dframe = (
-            dframe[columns].groupby(groups).mean().reset_index()
-            if groups
-            else dframe[responses].mean().to_frame().T
-        )
-
-        if "FLUID_ZONE" not in dframe:
-            dframe["FLUID_ZONE"] = (" + ").join(selections["filters"]["FLUID_ZONE"])
-
-        dframe = dframe[move_to_end_of_list("FLUID_ZONE", dframe.columns)]
-        return [
-            DataTable(
-                selectors=volumemodel.selectors,
-                columns=create_table_columns(
-                    columns=dframe.columns, use_si_format=volumemodel.volume_columns
-                ),
-                data=dframe.iloc[::-1].to_dict("records"),
+            return (
+                figure,
+                {"height": "86vh"}
+                if response_table_hidden and property_table_hidden
+                else {"height": "45vh"},
+                tables[0] if tables[0] is not None else [],
+                response_table_hidden,
+                tables[1] if tables[1] is not None else [],
+                property_table_hidden,
             )
-        ]
