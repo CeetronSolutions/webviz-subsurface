@@ -67,7 +67,7 @@ class DataTable(ViewElementABC):
 
     def inner_layout(self) -> Component:
         if not self.data:
-            return []
+            return None
 
         if self.selectors is None:
             self.selectors = []
@@ -251,7 +251,6 @@ class InplaceDistributionsCustomPlotting(ViewABC):
             )
 
             column.add_view_element(plot, "Plot")
-            tables = {}
             i = 0
             if selections["bottom_viz"] == "table":
                 for table in self.make_tables(
@@ -265,7 +264,7 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                     table_type="Statistics table",
                     view_height=37,
                 ):
-                    tables[f"table-{i}"] = table
+                    column.add_view_element(table, f"Table-{i}")
                     i += 1
 
             return column.layout
