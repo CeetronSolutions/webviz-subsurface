@@ -52,7 +52,7 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
         self._iteration_id = iteration_id
         self._stat_surf_cache = StatSurfCache(self._provider_dir / REL_STAT_CACHE_DIR)
 
-        sumo = Explorer(env="dev", write_back=True)
+        sumo = Explorer(env="dev", interactive=True)
         case = sumo.get_case_by_id(self._case_sumo_id)
         print(json.dumps(case.meta_data, indent=2, sort_keys=True))
 
@@ -64,18 +64,24 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
         name_arr: List[str] = []
         datestr_arr: List[str] = []
 
-        attrib_names = case.get_object_tag_names("surface", iteration_id=iteration_id)
+        attrib_names = case.get_object_property_values(
+            "tag_name", "surface", iteration_ids=[iteration_id]
+        )
         for attrib_name in attrib_names:
-            surf_names = case.get_object_names(
-                "surface", iteration_id=iteration_id, tag_name=attrib_name
+            surf_names = case.get_object_property_values(
+                "object_name",
+                "surface",
+                iteration_ids=[iteration_id],
+                tag_names=[attrib_name],
             )
 
             for surf_name in surf_names:
-                time_intervals = case.get_object_time_intervals(
+                time_intervals = case.get_object_property_values(
+                    "time_interval",
                     "surface",
-                    object_name=surf_name,
-                    tag_name=attrib_name,
-                    iteration_id=iteration_id,
+                    object_names=[surf_name],
+                    iteration_ids=[iteration_id],
+                    tag_names=[attrib_name],
                 )
 
                 for interval_str in time_intervals:
@@ -103,7 +109,7 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
         iteration_id: str,
     ) -> Optional["ProviderImplSumo"]:
 
-        sumo = Explorer(env="dev", write_back=True)
+        sumo = Explorer(env="dev", interactive=True)
         case_collection = sumo.get_cases(fields=[field_name])
         sumo_id_of_case = None
         for case in case_collection:
@@ -173,6 +179,7 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
         timer = PerfTimer()
 
         lookup_datestr = address.datestr if address.datestr is not None else ""
+        time_intervals_list = [address.datestr] if address.datestr is not None else []
 
         df = self._inventory_df
         df = df.loc[
@@ -186,16 +193,16 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
             LOGGER.warning(f"No simulated surface in inventory for: {address}")
             return None
 
-        sumo = Explorer(env="dev", write_back=True)
+        sumo = Explorer(env="dev", interactive=True)
         case = sumo.get_case_by_id(self._case_sumo_id)
 
         surface_collection = case.get_objects(
             "surface",
-            iteration_id=self._iteration_id,
-            realization_id=address.realization,
-            tag_name=address.attribute,
-            object_name=address.name,
-            time_interval=lookup_datestr,
+            iteration_ids=[self._iteration_id],
+            realization_ids=[address.realization],
+            tag_names=[address.attribute],
+            object_names=[address.name],
+            time_intervals=time_intervals_list,
         )
 
         num_surfaces = len(surface_collection)
@@ -224,6 +231,7 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
         timer = PerfTimer()
 
         lookup_datestr = address.datestr if address.datestr is not None else ""
+        time_intervals_list = [address.datestr] if address.datestr is not None else []
 
         df = self._inventory_df
         df = df.loc[
@@ -237,18 +245,16 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
             LOGGER.warning(f"No simulated surface in inventory for: {address}")
             return None
 
-        sumo = Explorer(env="dev", write_back=True)
+        sumo = Explorer(env="dev", interactive=True)
         case = sumo.get_case_by_id(self._case_sumo_id)
 
-        # Need to get the requested realizations here, but currently Sumo Explorer
-        # supports only single realization or all
         surface_collection = case.get_objects(
             "surface",
-            iteration_id=self._iteration_id,
-            realization_id=None,
-            tag_name=address.attribute,
-            object_name=address.name,
-            time_interval=lookup_datestr,
+            iteration_ids=[self._iteration_id],
+            realization_ids=address.realizations,
+            tag_names=[address.attribute],
+            object_names=[address.name],
+            time_intervals=time_intervals_list,
         )
 
         surf_count = len(surface_collection)
