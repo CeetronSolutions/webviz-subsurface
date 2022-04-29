@@ -160,7 +160,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
             ElementIds.InplaceDistributions.Settings.Filters.ID,
         )
 
-        self.add_view(Tables(), "Tables")
+        self.add_view(Tables(self.volumes_model), ElementIds.Tables.ID)
 
         if self.volumes_model.sensrun:
             self.add_view(
@@ -302,7 +302,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 for id_value, values in zip(filter_ids, filters)
             }
 
-            page_selections.update(Colorscale=colorscale[0] if colorscale else None)
+            page_selections.update(Colorscale=colorscale if colorscale else None)
             page_selections.update(ctx_clicked=ctx["prop_id"])
 
             # check if a page needs to be updated due to page refresh or

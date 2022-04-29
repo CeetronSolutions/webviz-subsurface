@@ -18,8 +18,8 @@ from webviz_subsurface._abbreviations.volume_terminology import (
 from webviz_subsurface._figures import create_figure
 from ...utils.table_and_figure_utils import (
     fluid_annotation,
+    make_tables
 )
-from .utils import make_tables
 
 from ..._layout_elements import ElementIds
 
@@ -97,9 +97,6 @@ class InplaceDistributionsCustomPlotting(ViewABC):
             selections: dict,
         ) -> Tuple[dict, dict, Component, bool, Component, bool]:
             if selections is None:
-                raise PreventUpdate
-
-            if not selections["update"]:
                 raise PreventUpdate
 
             selected_data = [

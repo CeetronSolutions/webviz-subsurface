@@ -17,10 +17,37 @@ class ElementIds:
                 TABLE = "table"
 
         class PlotsPerZoneRegion:
-            ID = "inplace_distributions_plots_per_zone_region"
+            ID = "plots_per_zone_region"
+
+            GRAPH = "graph"
+
+            class ZonePlot:
+                BAR_PLOT = "zone_bar_plot"
+                PIE_PLOT = "zone_pie_plot"
+
+            class RegionPlot:
+                BAR_PLOT = "zone_bar_plot"
+                PIE_PLOT = "zone_pie_plot"
+
+            class FaciesPlot:
+                BAR_PLOT = "zone_bar_plot"
+                PIE_PLOT = "zone_pie_plot"
+
+            class FipNumPlot:
+                BAR_PLOT = "zone_bar_plot"
+                PIE_PLOT = "zone_pie_plot"
+
+            class SetPlot:
+                BAR_PLOT = "zone_bar_plot"
+                PIE_PLOT = "zone_pie_plot"
+
 
         class ConvergencePlot:
-            ID = "inplace_distributions_convergence_plot"
+            ID = "convergence_plot"
+
+            class Plot:
+                ID = "plot"
+                GRAPH = "graph"
 
         class Settings:
             class PlotControls:
@@ -31,6 +58,12 @@ class ElementIds:
 
             class Settings:
                 ID = "inplace_distributions_settings"
+
+    class Tables:
+        ID = "tables"
+        TABLE = "table"
+        DIV = "div"
+        SETTING = "table_controls"
 
     class TornadoPlots:
         class Custom:
