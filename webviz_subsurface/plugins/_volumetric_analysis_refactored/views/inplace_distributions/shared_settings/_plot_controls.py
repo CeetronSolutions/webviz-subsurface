@@ -1,16 +1,13 @@
-from typing import List, Optional, Type
-from xml.dom.minidom import Element
+from typing import List, Optional
 from webviz_config.webviz_plugin_subclasses import (
     SettingsGroupABC,
 )
 from dash.development.base_component import Component
 
-from dash import ALL, Input, Output, State, callback, html
+from dash import html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
-
-from .._layout_elements import ElementIds
 
 
 class PlotControls(SettingsGroupABC):

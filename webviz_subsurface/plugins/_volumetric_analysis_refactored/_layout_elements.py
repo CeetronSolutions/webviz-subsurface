@@ -69,5 +69,20 @@ class ElementIds:
         class Custom:
             ID = "tornado_plots_custom"
 
+            class Plots:
+                ID = "plot"
+                GRAPHS = "graphs"
+
+            class Tables:
+                ID = "statistics_response_table"
+                TABLES = "tables"
+
         class BulkVsStoiipGiip:
             ID = "tornado_plots_bulk"
+
+        class Settings:
+            class TornadoControls:
+                ID = "tornado_controls"
+
+            class Settings:
+                ID = "tornado_settings"

@@ -1,4 +1,5 @@
 from typing import Tuple
+from time import sleep
 
 import pandas as pd
 from webviz_config import WebvizConfigTheme
@@ -42,7 +43,7 @@ class Plot(ViewElementABC):
 
 class InplaceDistributionsConvergencePlot(ViewABC):
     def __init__(self, volumes_model: InplaceVolumesModel) -> None:
-        super().__init__("Custom plotting")
+        super().__init__("Convergence plot Mean/P10/P90")
 
         self.volumes_model = volumes_model
 

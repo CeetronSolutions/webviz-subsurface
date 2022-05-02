@@ -17,7 +17,9 @@ from webviz_subsurface._models import (
     caching_ensemble_set_model_factory,
 )
 from webviz_subsurface._models.inplace_volumes_model import extract_volumes
-from .shared_settings import PlotControls, Filters, Settings
+from .shared_settings import Filters
+from .views.inplace_distributions.shared_settings import PlotControls, Settings as InplaceDistributionsSettings
+from .views.tornado_plots.shared_settings import TornadoControls, Settings as TornadoSettings
 
 from .views import (
     InplaceDistributionsCustomPlotting,
@@ -124,6 +126,11 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         )
 
         self.add_shared_settings_group(
+            Filters(self.volumes_model),
+            ElementIds.InplaceDistributions.Settings.Filters.ID,
+        )
+
+        self.add_shared_settings_group(
             PlotControls(self.volumes_model),
             ElementIds.InplaceDistributions.Settings.PlotControls.ID,
             visible_in_views=[
@@ -140,7 +147,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         )
 
         self.add_shared_settings_group(
-            Settings(self.volumes_model, self.theme),
+            InplaceDistributionsSettings(self.volumes_model, self.theme),
             ElementIds.InplaceDistributions.Settings.Settings.ID,
             visible_in_views=[
                 self.view(ElementIds.InplaceDistributions.CustomPlotting.ID)
@@ -155,23 +162,34 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
             ],
         )
 
-        self.add_shared_settings_group(
-            Filters(self.volumes_model),
-            ElementIds.InplaceDistributions.Settings.Filters.ID,
-        )
-
         self.add_view(Tables(self.volumes_model), ElementIds.Tables.ID)
 
         if self.volumes_model.sensrun:
             self.add_view(
                 TornadoPlotsCustom(), ElementIds.TornadoPlots.Custom.ID, "Tornadoplots"
             )
-
-        if self.volumes_model.sensrun:
             self.add_view(
                 TornadoPlotsBulk(),
                 ElementIds.TornadoPlots.BulkVsStoiipGiip.ID,
                 "Tornadoplots",
+            )
+
+            self.add_shared_settings_group(
+                TornadoControls(self.volumes_model), 
+                ElementIds.TornadoPlots.Settings.TornadoControls.ID, 
+                visible_in_views=[
+                    self.view(ElementIds.TornadoPlots.Custom.ID).get_uuid().to_string(), 
+                    self.view(ElementIds.TornadoPlots.BulkVsStoiipGiip.ID).get_uuid().to_string()
+                ]
+            )
+
+            self.add_shared_settings_group(
+                TornadoSettings(self.volumes_model), 
+                ElementIds.TornadoPlots.Settings.Settings.ID, 
+                visible_in_views=[
+                    self.view(ElementIds.TornadoPlots.Custom.ID).get_uuid().to_string(), 
+                    self.view(ElementIds.TornadoPlots.BulkVsStoiipGiip.ID).get_uuid().to_string()
+                ]
             )
 
         if len(self.volumes_model.sources) > 1:
