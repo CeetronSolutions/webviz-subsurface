@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 from webviz_config import WebvizConfigTheme
 from webviz_config.webviz_plugin_subclasses import (
     ViewABC,
@@ -7,7 +7,7 @@ from webviz_config.webviz_plugin_subclasses import (
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 
-from dash import Input, Output, callback, html
+from dash import Input, Output, State, callback, html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
@@ -17,9 +17,9 @@ from webviz_subsurface._abbreviations.volume_terminology import (
 )
 from webviz_subsurface._figures import create_figure
 from ...utils.table_and_figure_utils import (
-    fluid_annotation,
-    make_tables
+    update_tornado_figures_xaxis, create_data_table
 )
+from ...utils.utils import update_relevant_components
 
 from webviz_subsurface._components.tornado._tornado_bar_chart import TornadoBarChart
 from webviz_subsurface._components.tornado._tornado_data import TornadoData
@@ -29,7 +29,7 @@ from webviz_subsurface._models import InplaceVolumesModel
 
 from ..._layout_elements import ElementIds
 
-from .utils import tornado_figure_and_table
+from .utils import tornado_figure_and_table, sens_colors, create_realplot, tornado_plots_layout, tornado_error_layout
 
 
 class Plots(ViewElementABC):
@@ -50,11 +50,12 @@ class DataTables(ViewElementABC):
         return []
 
 
-class TornadoPlot(ViewABC):
-    def __init__(self, volumes_model: InplaceVolumesModel) -> None:
+class TornadoPlotsCustom(ViewABC):
+    def __init__(self, volumes_model: InplaceVolumesModel, theme: WebvizConfigTheme) -> None:
         super().__init__("Custom")
 
         self.volumes_model = volumes_model
+        self.theme = theme
 
         column = self.add_column()
 
@@ -84,6 +85,9 @@ class TornadoPlot(ViewABC):
                 "children",
             ),
             Input(self.get_store_uuid("selections"), "data"),
+            State({"id": self.plots.component_uuid(
+                    ElementIds.TornadoPlots.Custom.Plots.GRAPHS
+                ).to_string(), "page": ALL}, "id"),
         )
         def _update_plots_and_tables(
             selections: dict,
@@ -124,8 +128,8 @@ class TornadoPlot(ViewABC):
                                 tornado_data=tornado_data,
                                 response=response,
                                 selections=selections,
-                                theme=theme,
-                                sensitivity_colors=sens_colors(),
+                                theme=self.theme,
+                                sensitivity_colors=sens_colors(self.volumes_model),
                                 font_size=max((20 - (0.4 * len(df_groups))), 10),
                                 group=group,
                                 use_si_format=response in self.volumes_model.volume_columns,
@@ -140,20 +144,20 @@ class TornadoPlot(ViewABC):
                             ):
                                 realplot = create_realplot(
                                     df=tornado_data.real_df,
-                                    sensitivity_colors=sens_colors(),
+                                    sensitivity_colors=sens_colors(self.volumes_model),
                                 )
 
             if selections["Shared axis"] and selections["Scale"] != "True":
                 update_tornado_figures_xaxis(figures)
 
-            bottom_display: list = []
+            bottom_display: Optional[list] = []
             if selections["bottom_viz"] == "table" and figures:
                 bottom_display = create_data_table(
                     columns=columns,
                     selectors=[selections["Subplots"]] if subplots else [],
                     data=[x for table in tables for x in table],
                     height="39vh",
-                    table_id={"table_id": f"{page_selected}-torntable"},
+                    table_id={"table_id": f"{self.get_uuid().to_string()}-torntable"},
                 )
             elif selections["bottom_viz"] == "realplot" and figures:
                 bottom_display = [
@@ -183,4 +187,5 @@ class TornadoPlot(ViewABC):
                     }
                 ],
             )
+            
 

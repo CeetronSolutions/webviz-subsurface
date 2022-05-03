@@ -1,14 +1,20 @@
 from typing import Any, Callable, List, Optional, Tuple
 
+import pandas as pd
 import plotly.graph_objects as go
 from webviz_config import WebvizConfigTheme
+import webviz_core_components as wcc
+from dash import html
 
 from webviz_subsurface._components.tornado._tornado_bar_chart import TornadoBarChart
 from webviz_subsurface._components.tornado._tornado_data import TornadoData
 from webviz_subsurface._components.tornado._tornado_table import TornadoTable
+from webviz_subsurface._figures import create_figure
+from webviz_subsurface._models import InplaceVolumesModel
 
 from ....utils.table_and_figure_utils import (
     create_table_columns,
+    create_figure_matrix
 )
 
 def tornado_figure_and_table(
@@ -79,3 +85,95 @@ def create_tornado_table(
         )
     )
     return table_data, columns
+
+def create_realplot(df: pd.DataFrame, sensitivity_colors: dict) -> go.Figure:
+    senscasecolors = {
+        senscase: sensitivity_colors[sensname]
+        for senscase, sensname in zip(df["sensname_case"], df["sensname"])
+    }
+
+    return (
+        create_figure(
+            plot_type="bar",
+            data_frame=df,
+            x="REAL",
+            y="VALUE",
+            color="sensname_case",
+            color_discrete_map=senscasecolors,
+            barmode="overlay",
+            custom_data=["casetype"],
+            yaxis={"range": [df["VALUE"].min() * 0.7, df["VALUE"].max() * 1.1]},
+            opacity=0.85,
+        )
+        .update_layout(legend={"orientation": "h", "yanchor": "bottom", "y": 1.02})
+        .update_layout(legend_title_text="")
+        .for_each_trace(
+            lambda t: (
+                t.update(marker_line_color="black")
+                if t["customdata"][0][0] == "high"
+                else t.update(marker_line_color="white", marker_line_width=2)
+            )
+            if t["customdata"][0][0] != "mc"
+            else None
+        )
+    )
+
+def sens_colors(volumes_model: InplaceVolumesModel) -> dict:
+        colors = [
+            "#FF1243",
+            "#243746",
+            "#007079",
+            "#80B7BC",
+            "#919BA2",
+            "#BE8091",
+            "#B2D4D7",
+            "#FF597B",
+            "#BDC3C7",
+            "#D8B2BD",
+            "#FFE7D6",
+            "#D5EAF4",
+            "#FF88A1",
+        ]
+        sensitivities = volumes_model.dataframe["SENSNAME"].unique()
+        return dict(zip(sensitivities, colors * 10))
+
+def tornado_plots_layout(figures: list, bottom_display: list) -> html.Div:
+    matrix = create_figure_matrix(figures)
+    max_height = 45 if bottom_display else 86
+
+    return html.Div(
+        children=[
+            html.Div(
+                children=[
+                    wcc.FlexBox(
+                        children=[
+                            html.Div(
+                                style={"flex": 1},
+                                children=wcc.Graph(
+                                    config={"displayModeBar": False},
+                                    style={"height": f"{max_height/len(matrix)}vh"},
+                                    figure=fig,
+                                )
+                                if fig is not None
+                                else [],
+                            )
+                            for fig in row
+                        ]
+                    )
+                    for row in matrix
+                ],
+            ),
+            html.Div(
+                bottom_display,
+                style={
+                    "height": "40vh",
+                    "display": "block" if bottom_display else "none",
+                    "margin-top": "20px",
+                },
+            ),
+        ]
+    )
+
+
+def tornado_error_layout(message: str) -> wcc.Frame:
+    return html.Div(message, style={"margin-top": "40px"})
