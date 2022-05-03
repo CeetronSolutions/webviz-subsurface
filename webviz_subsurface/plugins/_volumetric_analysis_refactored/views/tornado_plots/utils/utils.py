@@ -1,10 +1,10 @@
-from typing import Any, Callable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import pandas as pd
 import plotly.graph_objects as go
 from webviz_config import WebvizConfigTheme
 import webviz_core_components as wcc
-from dash import html
+from dash import html, no_update
 
 from webviz_subsurface._components.tornado._tornado_bar_chart import TornadoBarChart
 from webviz_subsurface._components.tornado._tornado_data import TornadoData
@@ -12,10 +12,18 @@ from webviz_subsurface._components.tornado._tornado_table import TornadoTable
 from webviz_subsurface._figures import create_figure
 from webviz_subsurface._models import InplaceVolumesModel
 
-from ....utils.table_and_figure_utils import (
-    create_table_columns,
-    create_figure_matrix
-)
+from ....utils.table_and_figure_utils import create_table_columns, create_figure_matrix
+
+
+def update_relevant_components(id_list: list, update_info: List[dict]) -> list:
+    output_id_list = [no_update] * len(id_list)
+    for elm in update_info:
+        for idx, x in enumerate(id_list):
+            if all(x[key] == value for key, value in elm["conditions"].items()):
+                output_id_list[idx] = elm["new_value"]
+                break
+    return output_id_list
+
 
 def tornado_figure_and_table(
     tornado_data: TornadoData,
@@ -58,6 +66,7 @@ def tornado_figure_and_table(
     )
     return figure, table_data, columns
 
+
 def create_tornado_table(
     tornado_data: TornadoData,
     subplots: str,
@@ -85,6 +94,7 @@ def create_tornado_table(
         )
     )
     return table_data, columns
+
 
 def create_realplot(df: pd.DataFrame, sensitivity_colors: dict) -> go.Figure:
     senscasecolors = {
@@ -118,59 +128,60 @@ def create_realplot(df: pd.DataFrame, sensitivity_colors: dict) -> go.Figure:
         )
     )
 
+
 def sens_colors(volumes_model: InplaceVolumesModel) -> dict:
-        colors = [
-            "#FF1243",
-            "#243746",
-            "#007079",
-            "#80B7BC",
-            "#919BA2",
-            "#BE8091",
-            "#B2D4D7",
-            "#FF597B",
-            "#BDC3C7",
-            "#D8B2BD",
-            "#FFE7D6",
-            "#D5EAF4",
-            "#FF88A1",
-        ]
-        sensitivities = volumes_model.dataframe["SENSNAME"].unique()
-        return dict(zip(sensitivities, colors * 10))
+    colors = [
+        "#FF1243",
+        "#243746",
+        "#007079",
+        "#80B7BC",
+        "#919BA2",
+        "#BE8091",
+        "#B2D4D7",
+        "#FF597B",
+        "#BDC3C7",
+        "#D8B2BD",
+        "#FFE7D6",
+        "#D5EAF4",
+        "#FF88A1",
+    ]
+    sensitivities = volumes_model.dataframe["SENSNAME"].unique()
+    return dict(zip(sensitivities, colors * 10))
 
-def tornado_plots_layout(figures: list, bottom_display: list) -> html.Div:
+
+def tornado_plots_layout(
+    view_id: str, figures: list, bottom_display: Optional[list]
+) -> wcc.WebvizPluginLayoutColumn:
     matrix = create_figure_matrix(figures)
-    max_height = 45 if bottom_display else 86
+    max_height = 45 if bottom_display != None else 86
 
-    return html.Div(
+    return wcc.WebvizPluginLayoutColumn(
         children=[
-            html.Div(
+            wcc.WebvizPluginLayoutRow(
                 children=[
-                    wcc.FlexBox(
-                        children=[
-                            html.Div(
-                                style={"flex": 1},
-                                children=wcc.Graph(
-                                    config={"displayModeBar": False},
-                                    style={"height": f"{max_height/len(matrix)}vh"},
-                                    figure=fig,
-                                )
-                                if fig is not None
-                                else [],
-                            )
-                            for fig in row
-                        ]
+                    wcc.WebvizViewElement(
+                        id=f"{view_id}-{row_index}-{col_index}",
+                        children=wcc.Graph(
+                            config={"displayModeBar": False},
+                            style={
+                                "height": f"{max_height/len(matrix)}vh",
+                                "min-height": "350px",
+                            },
+                            figure=fig,
+                        ),
                     )
-                    for row in matrix
-                ],
-            ),
-            html.Div(
-                bottom_display,
-                style={
-                    "height": "40vh",
-                    "display": "block" if bottom_display else "none",
-                    "margin-top": "20px",
-                },
-            ),
+                    for col_index, fig in enumerate(row)
+                    if fig is not None
+                ]
+            )
+            for row_index, row in enumerate(matrix)
+        ]
+        + [
+            wcc.WebvizViewElement(
+                id=f"{view_id}-tables",
+                children=[bottom_display],
+                hidden=bottom_display is None,
+            )
         ]
     )
 

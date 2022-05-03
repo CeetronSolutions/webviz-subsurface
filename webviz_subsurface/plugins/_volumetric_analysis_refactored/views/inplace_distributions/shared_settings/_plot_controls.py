@@ -22,7 +22,11 @@ class PlotControls(SettingsGroupABC):
                 style={"margin-top": "10px"},
                 children=wcc.RadioItems(
                     label="Visualization below plot:",
-                    id={"id": self.get_uuid().to_string(), "selector": "bottom_viz"},
+                    id={
+                        "plugin_id": self.get_uuid().get_plugin_id(),
+                        "settings_id": self.get_uuid().to_string(),
+                        "selector": "bottom_viz",
+                    },
                     options=[
                         {"label": "Table", "value": "table"},
                         {"label": "None", "value": "none"},
@@ -65,7 +69,11 @@ class PlotControls(SettingsGroupABC):
             dropdowns.append(
                 wcc.Dropdown(
                     label=selector,
-                    id={"id": self.get_uuid().to_string(), "selector": selector},
+                    id={
+                        "plugin_id": self.get_uuid().get_plugin_id(),
+                        "settings_id": self.get_uuid().to_string(),
+                        "selector": selector,
+                    },
                     options=[{"label": elm, "value": elm} for elm in elements],
                     value=value,
                     clearable=selector in ["Subplots", "Color by", "Y Response"],

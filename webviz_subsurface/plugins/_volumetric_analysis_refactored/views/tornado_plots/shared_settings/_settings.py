@@ -12,9 +12,7 @@ from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
 
 
 class Settings(SettingsGroupABC):
-    def __init__(
-        self, volumes_model: InplaceVolumesModel
-    ) -> None:
+    def __init__(self, volumes_model: InplaceVolumesModel) -> None:
         super().__init__("Settings")
         self.volumes_model = volumes_model
 
@@ -29,7 +27,11 @@ class Settings(SettingsGroupABC):
     def scale_selector(self) -> wcc.Dropdown:
         return wcc.Dropdown(
             label="Scale:",
-            id={"id": self.get_uuid().to_string(), "selector": "Scale"},
+            id={
+                "plugin_id": self.get_uuid().get_plugin_id(),
+                "settings_id": self.get_uuid().to_string(),
+                "selector": "Scale",
+            },
             options=[
                 {"label": "Relative value (%)", "value": "Percentage"},
                 {"label": "Relative value", "value": "Absolute"},
@@ -44,7 +46,11 @@ class Settings(SettingsGroupABC):
             style={"margin-top": "10px", "margin-bottom": "10px"},
             children=[
                 wcc.Checklist(
-                    id={"id": self.get_uuid().to_string(), "selector": selector},
+                    id={
+                        "plugin_id": self.get_uuid().get_plugin_id(),
+                        "settings_id": self.get_uuid().to_string(),
+                        "selector": selector,
+                    },
                     options=[{"label": label, "value": "selected"}],
                     value=["selected"] if selected else [],
                 )
@@ -64,7 +70,11 @@ class Settings(SettingsGroupABC):
             children=[
                 wcc.RadioItems(
                     label="Label options:",
-                    id={"id": self.get_uuid().to_string(), "selector": "labeloptions"},
+                    id={
+                        "plugin_id": self.get_uuid().get_plugin_id(),
+                        "settings_id": self.get_uuid().to_string(),
+                        "selector": "labeloptions",
+                    },
                     options=[
                         {"label": "detailed", "value": "detailed"},
                         {"label": "simple", "value": "simple"},
@@ -79,8 +89,14 @@ class Settings(SettingsGroupABC):
     def reference_selector(self) -> wcc.Dropdown:
         return wcc.Dropdown(
             label="Reference:",
-            id={"id": self.get_uuid().to_string(), "selector": "Reference"},
-            options=[{"label": elm, "value": elm} for elm in self.volumes_model.sensitivities],
+            id={
+                "plugin_id": self.get_uuid().get_plugin_id(),
+                "settings_id": self.get_uuid().to_string(),
+                "selector": "Reference",
+            },
+            options=[
+                {"label": elm, "value": elm} for elm in self.volumes_model.sensitivities
+            ],
             value="rms_seed"
             if "rms_seed" in self.volumes_model.sensitivities
             else self.volumes_model.sensitivities[0],

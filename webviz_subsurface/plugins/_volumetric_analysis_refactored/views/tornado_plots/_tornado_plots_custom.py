@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 from webviz_config import WebvizConfigTheme
 from webviz_config.webviz_plugin_subclasses import (
     ViewABC,
@@ -7,29 +7,25 @@ from webviz_config.webviz_plugin_subclasses import (
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 
-from dash import Input, Output, State, callback, html
+from dash import Input, Output, callback, html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
-from webviz_subsurface._abbreviations.volume_terminology import (
-    volume_description,
-    volume_unit,
-)
-from webviz_subsurface._figures import create_figure
-from ...utils.table_and_figure_utils import (
-    update_tornado_figures_xaxis, create_data_table
-)
-from ...utils.utils import update_relevant_components
-
-from webviz_subsurface._components.tornado._tornado_bar_chart import TornadoBarChart
 from webviz_subsurface._components.tornado._tornado_data import TornadoData
-from webviz_subsurface._components.tornado._tornado_table import TornadoTable
-from webviz_subsurface._figures import create_figure
-from webviz_subsurface._models import InplaceVolumesModel
 
+from ...utils.table_and_figure_utils import (
+    update_tornado_figures_xaxis,
+    create_data_table,
+)
 from ..._layout_elements import ElementIds
 
-from .utils import tornado_figure_and_table, sens_colors, create_realplot, tornado_plots_layout, tornado_error_layout
+from .utils import (
+    tornado_figure_and_table,
+    sens_colors,
+    create_realplot,
+    tornado_plots_layout,
+    tornado_error_layout,
+)
 
 
 class Plots(ViewElementABC):
@@ -37,7 +33,9 @@ class Plots(ViewElementABC):
         super().__init__()
 
     def inner_layout(self) -> Component:
-        return html.Div(id=self.register_component_uuid(ElementIds.TornadoPlots.Custom.Plots.GRAPHS))
+        return html.Div(
+            id=self.register_component_uuid(ElementIds.TornadoPlots.Custom.Plots.GRAPHS)
+        )
 
 
 class DataTables(ViewElementABC):
@@ -51,47 +49,25 @@ class DataTables(ViewElementABC):
 
 
 class TornadoPlotsCustom(ViewABC):
-    def __init__(self, volumes_model: InplaceVolumesModel, theme: WebvizConfigTheme) -> None:
+    def __init__(
+        self, volumes_model: InplaceVolumesModel, theme: WebvizConfigTheme
+    ) -> None:
         super().__init__("Custom")
 
         self.volumes_model = volumes_model
         self.theme = theme
 
-        column = self.add_column()
-
-        self.plots = Plots()
-        column.add_view_element(
-            self.plots, ElementIds.TornadoPlots.Custom.Plots.ID
-        )
-
-        self.tables = DataTables()
-        column.add_view_element(
-            self.tables,
-            ElementIds.TornadoPlots.Custom.Tables.ID,
-        )
-
     def set_callbacks(self) -> None:
         @callback(
             Output(
-                self.plots.component_uuid(
-                    ElementIds.TornadoPlots.Custom.Plots.GRAPHS
-                ).to_string(),
-                "children",
-            ),
-            Output(
-                self.tables.component_uuid(
-                    ElementIds.TornadoPlots.Custom.Tables.TABLES
-                ).to_string(),
+                self.get_uuid().to_string(),
                 "children",
             ),
             Input(self.get_store_uuid("selections"), "data"),
-            State({"id": self.plots.component_uuid(
-                    ElementIds.TornadoPlots.Custom.Plots.GRAPHS
-                ).to_string(), "page": ALL}, "id"),
         )
         def _update_plots_and_tables(
             selections: dict,
-        ) -> Tuple[dict, dict, Component, bool, Component, bool]:
+        ) -> Component:
             if selections is None:
                 raise PreventUpdate
 
@@ -106,6 +82,10 @@ class TornadoPlotsCustom(ViewABC):
             tables = []
             responses = [selections["Response"]]
             for response in responses:
+                if selections["Reference"] not in selections["Sensitivities"]:
+                    selections["Sensitivities"].append(selections["Reference"])
+                filters.update(SENSNAME=selections["Sensitivities"])
+
                 dframe = self.volumes_model.get_df(filters=filters, groups=groups)
 
                 if not dframe.empty:
@@ -132,7 +112,8 @@ class TornadoPlotsCustom(ViewABC):
                                 sensitivity_colors=sens_colors(self.volumes_model),
                                 font_size=max((20 - (0.4 * len(df_groups))), 10),
                                 group=group,
-                                use_si_format=response in self.volumes_model.volume_columns,
+                                use_si_format=response
+                                in self.volumes_model.volume_columns,
                             )
                             figures.append(figure)
                             tables.append(table_data)
@@ -170,22 +151,16 @@ class TornadoPlotsCustom(ViewABC):
                     else "Realization plot not available when `Subplots` is active"
                 ]
 
-            return update_relevant_components(
-                id_list=id_list,
-                update_info=[
-                    {
-                        "new_value": tornado_plots_layout(
-                            figures=figures, bottom_display=bottom_display
-                        )
-                        if figures
-                        else tornado_error_layout(
-                            "No data left after filtering"
-                            if dframe.empty
-                            else f"Reference sensitivity '{selections['Reference']}' not in input data"
-                        ),
-                        "conditions": {"page": page_selected},
-                    }
-                ],
+            return (
+                tornado_plots_layout(
+                    view_id=self.get_uuid().to_string(),
+                    figures=figures,
+                    bottom_display=bottom_display,
+                )
+                if figures
+                else tornado_error_layout(
+                    "No data left after filtering"
+                    if dframe.empty
+                    else f"Reference sensitivity '{selections['Reference']}' not in input data"
+                )
             )
-            
-

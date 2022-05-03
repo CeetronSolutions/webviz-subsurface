@@ -1,11 +1,11 @@
 import itertools
 from typing import List, Tuple
 
-import dash
+from dash import no_update
 
 
 def update_relevant_components(id_list: list, update_info: List[dict]) -> list:
-    output_id_list = [dash.no_update] * len(id_list)
+    output_id_list = [no_update] * len(id_list)
     for elm in update_info:
         for idx, x in enumerate(id_list):
             if all(x[key] == value for key, value in elm["conditions"].items()):

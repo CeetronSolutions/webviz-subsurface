@@ -1,11 +1,12 @@
-from typing import List, Optional, Tuple, Type
-from xml.dom.minidom import Element
+from typing import List, Tuple
 from webviz_config.webviz_plugin_subclasses import (
-    SettingsGroupABC, ViewABC, ViewElementABC
+    SettingsGroupABC,
+    ViewABC,
+    ViewElementABC,
 )
 from dash.development.base_component import Component
 
-from dash import ALL, Input, Output, State, callback, html
+from dash import ALL, Input, Output, State, callback
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
@@ -22,10 +23,17 @@ class TableControls(SettingsGroupABC):
         self.selectors = ["ZONE", "REGION", "FACIES", "FIPNUM", "SET"]
 
     def layout(self) -> List[Component]:
-        responses = self.volumes_model.volume_columns + self.volumes_model.property_columns
-        return [wcc.Dropdown(
+        responses = (
+            self.volumes_model.volume_columns + self.volumes_model.property_columns
+        )
+        return [
+            wcc.Dropdown(
                 label="Table type",
-                id={"id": self.get_uuid().to_string(), "selector": "Table type"},
+                id={
+                    "plugin_id": self.get_uuid().get_plugin_id(),
+                    "settings_id": self.get_uuid().to_string(),
+                    "selector": "Table type",
+                },
                 options=[
                     {"label": elm, "value": elm}
                     for elm in ["Statistics table", "Mean table"]
@@ -35,19 +43,31 @@ class TableControls(SettingsGroupABC):
             ),
             wcc.Dropdown(
                 label="Group by",
-                id={"id": self.get_uuid().to_string(), "selector": "Group by"},
-                options=[{"label": elm, "value": elm} for elm in self.volumes_model.selectors],
+                id={
+                    "plugin_id": self.get_uuid().get_plugin_id(),
+                    "settings_id": self.get_uuid().to_string(),
+                    "selector": "Group by",
+                },
+                options=[
+                    {"label": elm, "value": elm} for elm in self.volumes_model.selectors
+                ],
                 value=None,
                 multi=True,
                 clearable=False,
             ),
             wcc.SelectWithLabel(
                 label="Responses",
-                id={"id": self.get_uuid().to_string(), "selector": "table_responses"},
+                id={
+                    "plugin_id": self.get_uuid().get_plugin_id(),
+                    "settings_id": self.get_uuid().to_string(),
+                    "selector": "table_responses",
+                },
                 options=[{"label": i, "value": i} for i in responses],
                 value=responses,
                 size=min(20, len(responses)),
-            )]
+            ),
+        ]
+
 
 class DataTable(ViewElementABC):
     def __init__(
@@ -57,6 +77,7 @@ class DataTable(ViewElementABC):
 
     def inner_layout(self) -> Component:
         return []
+
 
 class Tables(ViewABC):
     def __init__(self, volumes_model: InplaceVolumesModel) -> None:
@@ -87,12 +108,20 @@ class Tables(ViewABC):
             Output(self.property_table.get_uuid().to_string(), "children"),
             Output(self.property_table.get_uuid().to_string(), "hidden"),
             Input(self.get_store_uuid("selections"), "data"),
-            Input({"id": self.settings_group(ElementIds.Tables.SETTING).get_uuid().to_string(), "selector": ALL}, "value"),
+            Input(
+                {
+                    "plugin_id": self.get_uuid().get_plugin_id(),
+                    "settings_id": self.settings_group(ElementIds.Tables.SETTING)
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "value",
+            ),
             State(
                 {
-                    "id": self.settings_group(
-                        ElementIds.Tables.SETTING
-                    )
+                    "plugin_id": self.get_uuid().get_plugin_id(),
+                    "settings_id": self.settings_group(ElementIds.Tables.SETTING)
                     .get_uuid()
                     .to_string(),
                     "selector": ALL,
@@ -100,7 +129,9 @@ class Tables(ViewABC):
                 "id",
             ),
         )
-        def _update_table(shared_selections: dict, selectors: list, selector_ids: list) -> Tuple[Component, bool, Component, bool]:
+        def _update_table(
+            shared_selections: dict, selectors: list, selector_ids: list
+        ) -> Tuple[Component, bool, Component, bool]:
             selections = shared_selections
             for id_value, values in zip(selector_ids, selectors):
                 selections[id_value["selector"]] = values
@@ -114,7 +145,9 @@ class Tables(ViewABC):
                 table_groups.extend(
                     [x for x in selections["Group by"] if x not in table_groups]
                 )
-            dframe = self.volumes_model.get_df(filters=selections["filters"], groups=table_groups)
+            dframe = self.volumes_model.get_df(
+                filters=selections["filters"], groups=table_groups
+            )
 
             tables = make_tables(
                 dframe=dframe,

@@ -41,7 +41,6 @@ class ElementIds:
                 BAR_PLOT = "zone_bar_plot"
                 PIE_PLOT = "zone_pie_plot"
 
-
         class ConvergencePlot:
             ID = "convergence_plot"
 
@@ -53,9 +52,6 @@ class ElementIds:
             class PlotControls:
                 ID = "inplace_distributions_plot_controls"
 
-            class Filters:
-                ID = "inplace_distributions_filters"
-
             class Settings:
                 ID = "inplace_distributions_settings"
 
@@ -64,6 +60,47 @@ class ElementIds:
         TABLE = "table"
         DIV = "div"
         SETTING = "table_controls"
+
+    class EnsembleComparison:
+        ID = "ensemble_comparison"
+
+        class Settings:
+            ID = "settings"
+
+    class SensitivityComparison:
+        ID = "sensitivity_comparison"
+
+        class Settings:
+            ID = "settings"
+
+    class Comparison:
+        class SourceComparison:
+            ID = "source_comparison"
+
+        class EnsembleComparison:
+            ID = "ensemble_comparison"
+
+        class SensitivityComparison:
+            ID = "sensitivity_comparison"
+
+        class QCPlots:
+            ID = "qc_plots"
+
+        class DiffTableSelectedResponse:
+            ID = "diff_table_selected_response"
+
+        class DiffTableMultipleResponses:
+            ID = "diff_table_multiple_responses"
+
+        class Settings:
+            class Controls:
+                ID = "controls"
+
+            class Settings:
+                ID = "settings"
+
+    class FipQC:
+        ID = "fipqc"
 
     class TornadoPlots:
         class Custom:
@@ -86,3 +123,7 @@ class ElementIds:
 
             class Settings:
                 ID = "tornado_settings"
+
+    class SharedSettings:
+        class Filters:
+            ID = "inplace_distributions_filters"
