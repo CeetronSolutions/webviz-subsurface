@@ -1,8 +1,4 @@
-from typing import Tuple
-from time import sleep
-
 import pandas as pd
-from webviz_config import WebvizConfigTheme
 from webviz_config.webviz_plugin_subclasses import (
     ViewABC,
     ViewElementABC,
@@ -14,10 +10,6 @@ from dash import Input, Output, callback, html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
-from webviz_subsurface._abbreviations.volume_terminology import (
-    volume_description,
-    volume_unit,
-)
 from webviz_subsurface._figures import create_figure
 from ...utils.table_and_figure_utils import (
     fluid_annotation,
@@ -62,20 +54,24 @@ class InplaceDistributionsConvergencePlot(ViewABC):
                 ).to_string(),
                 "figure",
             ),
-            Input(self.get_store_uuid("selections"), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.INPLACE_DISTRIBUTIONS), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_plot_and_tables(
             selections: dict,
+            filters: dict,
         ) -> dict:
             if selections is None:
                 raise PreventUpdate
 
-            subplots = selections["Subplots"] if selections["Subplots"] is not None else []
+            subplots = (
+                selections["Subplots"] if selections["Subplots"] is not None else []
+            )
             groups = ["REAL"]
             if subplots and subplots not in groups:
                 groups.append(subplots)
 
-            dframe = self.volumes_model.get_df(filters=selections["filters"], groups=groups)
+            dframe = self.volumes_model.get_df(filters=filters, groups=groups)
             dframe = dframe.sort_values(by=["REAL"])
 
             if dframe.empty:
@@ -133,11 +129,15 @@ class InplaceDistributionsConvergencePlot(ViewABC):
                 .update_traces(
                     line=dict(color="royalblue", dash="dash"), selector={"name": "p90"}
                 )
-                .update_xaxes({"matches": None} if not selections["X axis matches"] else {})
-                .update_yaxes({"matches": None} if not selections["Y axis matches"] else {})
+                .update_xaxes(
+                    {"matches": None} if not selections["X axis matches"] else {}
+                )
+                .update_yaxes(
+                    {"matches": None} if not selections["Y axis matches"] else {}
+                )
             )
             if selections["X Response"] not in self.volumes_model.hc_responses:
-                figure.add_annotation(fluid_annotation(selections))
+                figure.add_annotation(fluid_annotation(selections, filters))
 
             missing_reals = [
                 x

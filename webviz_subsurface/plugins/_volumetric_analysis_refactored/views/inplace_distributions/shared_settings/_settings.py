@@ -30,7 +30,7 @@ class Settings(SettingsGroupABC):
                 id={
                     "plugin_id": self.get_uuid().get_plugin_id(),
                     "settings_id": self.get_uuid().to_string(),
-                    "settings": "Colorscale",
+                    "selector": "Colorscale",
                 },
                 colorscale=theme_colors,
                 fixSwatches=True,

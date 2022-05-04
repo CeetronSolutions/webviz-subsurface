@@ -63,10 +63,12 @@ class TornadoPlotsCustom(ViewABC):
                 self.get_uuid().to_string(),
                 "children",
             ),
-            Input(self.get_store_uuid("selections"), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.TORNADO_PLOTS), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_plots_and_tables(
             selections: dict,
+            filters: dict,
         ) -> Component:
             if selections is None:
                 raise PreventUpdate
@@ -76,7 +78,7 @@ class TornadoPlotsCustom(ViewABC):
             if subplots and selections["Subplots"] not in groups:
                 groups.append(selections["Subplots"])
 
-            filters = selections["filters"].copy()
+            filters_copy = filters.copy()
 
             figures = []
             tables = []
@@ -84,9 +86,9 @@ class TornadoPlotsCustom(ViewABC):
             for response in responses:
                 if selections["Reference"] not in selections["Sensitivities"]:
                     selections["Sensitivities"].append(selections["Reference"])
-                filters.update(SENSNAME=selections["Sensitivities"])
+                filters_copy.update(SENSNAME=selections["Sensitivities"])
 
-                dframe = self.volumes_model.get_df(filters=filters, groups=groups)
+                dframe = self.volumes_model.get_df(filters=filters_copy, groups=groups)
 
                 if not dframe.empty:
                     dframe.rename(columns={response: "VALUE"}, inplace=True)
@@ -108,6 +110,7 @@ class TornadoPlotsCustom(ViewABC):
                                 tornado_data=tornado_data,
                                 response=response,
                                 selections=selections,
+                                filters=filters_copy,
                                 theme=self.theme,
                                 sensitivity_colors=sens_colors(self.volumes_model),
                                 font_size=max((20 - (0.4 * len(df_groups))), 10),

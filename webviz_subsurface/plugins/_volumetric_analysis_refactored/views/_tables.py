@@ -107,35 +107,12 @@ class Tables(ViewABC):
             Output(self.response_table.get_uuid().to_string(), "hidden"),
             Output(self.property_table.get_uuid().to_string(), "children"),
             Output(self.property_table.get_uuid().to_string(), "hidden"),
-            Input(self.get_store_uuid("selections"), "data"),
-            Input(
-                {
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.settings_group(ElementIds.Tables.SETTING)
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "value",
-            ),
-            State(
-                {
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.settings_group(ElementIds.Tables.SETTING)
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "id",
-            ),
+            Input(self.get_store_uuid(ElementIds.Stores.TABLES), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_table(
-            shared_selections: dict, selectors: list, selector_ids: list
+            selections: dict, filters: dict
         ) -> Tuple[Component, bool, Component, bool]:
-            selections = shared_selections
-            for id_value, values in zip(selector_ids, selectors):
-                selections[id_value["selector"]] = values
-
             table_groups = (
                 ["ENSEMBLE", "REAL"]
                 if selections["Table type"] == "Statistics table"
@@ -145,9 +122,7 @@ class Tables(ViewABC):
                 table_groups.extend(
                     [x for x in selections["Group by"] if x not in table_groups]
                 )
-            dframe = self.volumes_model.get_df(
-                filters=selections["filters"], groups=table_groups
-            )
+            dframe = self.volumes_model.get_df(filters=filters, groups=table_groups)
 
             tables = make_tables(
                 dframe=dframe,
@@ -157,6 +132,7 @@ class Tables(ViewABC):
                 table_type=selections["Table type"],
                 volumemodel=self.volumes_model,
                 selections=selections,
+                filters=filters,
             )
 
             response_table_hidden = True

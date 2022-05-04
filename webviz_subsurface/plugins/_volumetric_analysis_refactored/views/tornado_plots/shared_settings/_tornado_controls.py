@@ -135,7 +135,7 @@ class TornadoControls(SettingsGroupABC):
                 },
                 "value",
             ),
-            State(self.get_store_uuid("selections"), "data"),
+            State(self.get_store_uuid(ElementIds.Stores.TORNADO_PLOTS), "data"),
         )
         def _update_tornado_selections(
             active_view_id: str,

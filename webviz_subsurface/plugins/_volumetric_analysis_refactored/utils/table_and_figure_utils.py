@@ -110,8 +110,8 @@ def fluid_table_style() -> list:
     ]
 
 
-def fluid_annotation(selections: dict) -> dict:
-    fluid_text = (" + ").join(selections["filters"]["FLUID_ZONE"])
+def fluid_annotation(selections: dict, filters: dict) -> dict:
+    fluid_text = (" + ").join(filters["FLUID_ZONE"])
     return dict(
         visible=bool(selections["Fluid annotation"])
         and selections["Subplots"] != "FLUID_ZONE",
@@ -161,12 +161,14 @@ def update_tornado_figures_xaxis(figures: List[go.Figure]) -> None:
     for fig in figures:
         fig.update_layout(xaxis_range=[-x_absmax, x_absmax])
 
+
 # pylint: disable=too-many-locals
 def make_tables(
     dframe: pd.DataFrame,
     responses: list,
     volumemodel: InplaceVolumesModel,
     selections: dict,
+    filters: dict,
     table_type: str,
     view_height: float,
     groups: Optional[list] = None,
@@ -196,9 +198,7 @@ def make_tables(
                     "Max": values.max(),
                 }
                 if "FLUID_ZONE" not in groups:
-                    data.update(
-                        FLUID_ZONE=(" + ").join(selections["filters"]["FLUID_ZONE"])
-                    )
+                    data.update(FLUID_ZONE=(" + ").join(filters["FLUID_ZONE"]))
 
                 for idx, group in enumerate(groups):
                     data[group] = (
@@ -248,7 +248,7 @@ def make_tables(
     )
 
     if "FLUID_ZONE" not in dframe:
-        dframe["FLUID_ZONE"] = (" + ").join(selections["filters"]["FLUID_ZONE"])
+        dframe["FLUID_ZONE"] = (" + ").join(filters["FLUID_ZONE"])
 
     dframe = dframe[move_to_end_of_list("FLUID_ZONE", dframe.columns)]
     return [

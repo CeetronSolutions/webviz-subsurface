@@ -1,5 +1,12 @@
 # pylint: disable = too-few-public-methods
 class ElementIds:
+    class Stores:
+        FILTERS = "filters"
+        INPLACE_DISTRIBUTIONS = "inplace_distributions"
+        TABLES = "tables"
+        TORNADO_PLOTS = "tornado_plots"
+        COMPARISON = "comparison"
+
     class InplaceDistributions:
         class CustomPlotting:
             ID = "custom_plots"
@@ -86,11 +93,17 @@ class ElementIds:
         class QCPlots:
             ID = "qc_plots"
 
+            PLOT_DIFF_VS_RESPONSE = "diff_vs_response"
+            PLOT_CORRELATION = "correlation"
+            HIGHLIGHTED_DATA = "highlighted_data"
+
         class DiffTableSelectedResponse:
             ID = "diff_table_selected_response"
 
         class DiffTableMultipleResponses:
             ID = "diff_table_multiple_responses"
+
+        GRAPH = "graph"
 
         class Settings:
             class Controls:

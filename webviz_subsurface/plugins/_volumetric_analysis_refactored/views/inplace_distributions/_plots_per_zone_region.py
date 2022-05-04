@@ -1,5 +1,4 @@
-from typing import Callable, List, Tuple
-from webviz_config import WebvizConfigTheme
+from typing import List, Tuple
 from webviz_config.webviz_plugin_subclasses import (
     ViewABC,
     ViewElementABC,
@@ -7,19 +6,14 @@ from webviz_config.webviz_plugin_subclasses import (
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 
-from dash import Input, Output, callback, html
+from dash import Input, Output, callback
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
-from webviz_subsurface._abbreviations.volume_terminology import (
-    volume_description,
-    volume_unit,
-)
 from webviz_subsurface._figures import create_figure
 from ...utils.table_and_figure_utils import (
     fluid_annotation,
 )
-from ...utils.table_and_figure_utils import make_tables
 
 from ..._layout_elements import ElementIds
 
@@ -67,15 +61,19 @@ class InplaceDistributionsPlotsPerZoneRegion(ViewABC):
     def callback_factory(self, index: int, selector: str) -> None:
         @callback(
             Output(
-                self.plots[index][0].component_uuid(
+                self.plots[index][0]
+                .component_uuid(
                     ElementIds.InplaceDistributions.PlotsPerZoneRegion.GRAPH
-                ).to_string(),
+                )
+                .to_string(),
                 "figure",
             ),
             Output(
-                self.plots[index][1].component_uuid(
+                self.plots[index][1]
+                .component_uuid(
                     ElementIds.InplaceDistributions.PlotsPerZoneRegion.GRAPH
-                ).to_string(),
+                )
+                .to_string(),
                 "figure",
             ),
             Output(
@@ -86,28 +84,34 @@ class InplaceDistributionsPlotsPerZoneRegion(ViewABC):
                 self.plots[index][1].get_uuid().to_string(),
                 "hidden",
             ),
-            Input(self.get_store_uuid("selections"), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.INPLACE_DISTRIBUTIONS), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_plots(
-                selections: dict,
-            ) -> Tuple[dict, dict, bool, bool]:
-                if selections is None:
-                    raise PreventUpdate
+            selections: dict,
+            filters: dict,
+        ) -> Tuple[dict, dict, bool, bool]:
+            if selections is None:
+                raise PreventUpdate
 
-                return self.make_figures(selector, selections)
+            return self.make_figures(selector, selections, filters)
 
-        
     def set_callbacks(self) -> None:
         for index, selector in enumerate(self.selectors):
             self.callback_factory(index, selector)
 
-    def make_figures(self, selector: str, selections: dict) -> Tuple[dict, dict, bool, bool]:
+    def make_figures(
+        self,
+        selector: str,
+        selections: dict,
+        filters: dict,
+    ) -> Tuple[dict, dict, bool, bool]:
         if selector not in self.volumes_model.selectors:
             return ({}, {}, True, True)
 
         color = selections["Color by"] is not None
         groups = list({selector, selections["Color by"]}) if color else [selector]
-        dframe = self.volumes_model.get_df(filters=selections["filters"], groups=groups)
+        dframe = self.volumes_model.get_df(filters=filters, groups=groups)
         piefig = (
             (
                 create_figure(
@@ -147,4 +151,4 @@ class InplaceDistributionsPlotsPerZoneRegion(ViewABC):
 
         if selections["X Response"] not in self.volumes_model.hc_responses:
             barfig.add_annotation(fluid_annotation(selections))
-        return (barfig, piefig if piefig else {}, False, piefig == None)
+        return (barfig, piefig if piefig else {}, False, piefig is None)

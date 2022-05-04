@@ -117,8 +117,17 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
 
         # Stores
 
-        self.add_store("selections", WebvizPluginABC.StorageType.SESSION)
-        self.add_store("initial-load-info", WebvizPluginABC.StorageType.MEMORY)
+        self.add_store(ElementIds.Stores.FILTERS, WebvizPluginABC.StorageType.SESSION)
+        self.add_store(
+            ElementIds.Stores.INPLACE_DISTRIBUTIONS, WebvizPluginABC.StorageType.SESSION
+        )
+        self.add_store(ElementIds.Stores.TABLES, WebvizPluginABC.StorageType.SESSION)
+        self.add_store(
+            ElementIds.Stores.TORNADO_PLOTS, WebvizPluginABC.StorageType.SESSION
+        )
+        self.add_store(
+            ElementIds.Stores.COMPARISON, WebvizPluginABC.StorageType.SESSION
+        )
 
         # Inplace distributions views
 
@@ -215,7 +224,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
 
         if len(self.volumes_model.sources) > 1:
             self.add_view(
-                QCPlots(volumes_model=self.volumes_model),
+                QCPlots(compare_on="Source", volumes_model=self.volumes_model),
                 f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.QCPlots.ID}",
                 "Source comparison",
             )
@@ -234,9 +243,21 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 Controls(compare_on="Source", volumes_model=self.volumes_model),
                 f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
                 visible_in_views=[
-                    f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
-                    f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                    f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
+                    self.view(
+                        f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.QCPlots.ID}"
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    self.view(
+                        f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}"
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    self.view(
+                        f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
+                    )
+                    .get_uuid()
+                    .to_string(),
                 ],
             )
 
@@ -244,16 +265,28 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 ComparisonSettings(),
                 f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
                 visible_in_views=[
-                    f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
-                    f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                    f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
+                    self.view(
+                        f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.QCPlots.ID}"
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    self.view(
+                        f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}"
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    self.view(
+                        f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
+                    )
+                    .get_uuid()
+                    .to_string(),
                 ],
             )
 
         if len(self.volumes_model.ensembles) > 1 or self.volumes_model.sensrun:
             if len(self.volumes_model.ensembles) > 1:
                 self.add_view(
-                    QCPlots(volumes_model=self.volumes_model),
+                    QCPlots(compare_on="Ensemble", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.QCPlots.ID}",
                     "Ensemble comparison",
                 )
@@ -272,9 +305,21 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     Controls(compare_on="Ensemble", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
                     visible_in_views=[
-                        f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
-                        f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                        f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
+                        self.view(
+                            f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.QCPlots.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        self.view(
+                            f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        self.view(
+                            f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
                     ],
                 )
 
@@ -282,14 +327,26 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     ComparisonSettings(),
                     f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
                     visible_in_views=[
-                        f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
-                        f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                        f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
+                        self.view(
+                            f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.QCPlots.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        self.view(
+                            f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        self.view(
+                            f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
                     ],
                 )
             else:
                 self.add_view(
-                    QCPlots(volumes_model=self.volumes_model),
+                    QCPlots(compare_on="Sensitivity", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.QCPlots.ID}",
                     "Sensitivity comparison",
                 )
@@ -310,9 +367,21 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     ),
                     f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
                     visible_in_views=[
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
+                        self.view(
+                            f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.QCPlots.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        self.view(
+                            f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        self.view(
+                            f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
                     ],
                 )
 
@@ -320,9 +389,21 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     ComparisonSettings(),
                     f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
                     visible_in_views=[
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
+                        self.view(
+                            f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.QCPlots.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        self.view(
+                            f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        self.view(
+                            f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}"
+                        )
+                        .get_uuid()
+                        .to_string(),
                     ],
                 )
 
@@ -331,15 +412,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
 
     def _set_callbacks(self) -> None:
         @callback(
-            Output(self.get_store_uuid("selections"), "data"),
-            Input(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": ALL,
-                    "selector": ALL,
-                },
-                "value",
-            ),
+            Output(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
             Input(
                 {
                     "id": self.shared_settings_group(
@@ -351,25 +424,6 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     "type": ALL,
                 },
                 "value",
-            ),
-            Input(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": ALL,
-                    "settings": "Colorscale",
-                },
-                "value",
-            ),
-            Input(self.get_store_uuid("initial-load-info"), "data"),
-            Input("webviz-content-manager", "activeViewId"),
-            State(self.get_store_uuid("selections"), "data"),
-            State(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": ALL,
-                    "selector": ALL,
-                },
-                "id",
             ),
             State(
                 {
@@ -384,88 +438,278 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 "id",
             ),
         )
-        def _update_selections(
-            selectors: list,
-            filters: list,
-            colorscale: str,
-            initial_load: dict,
-            selected_view: str,
-            previous_selection: dict,
-            selector_ids: list,
+        def _update_filters(
+            filter_values: list,
             filter_ids: list,
         ) -> dict:
             ctx = callback_context.triggered[0]
             if ctx["prop_id"] == ".":
                 raise PreventUpdate
 
-            if previous_selection is None:
-                previous_selection = {}
-
-            page_selections = {
+            filters = {
                 id_value["selector"]: values
-                for id_value, values in zip(selector_ids, selectors)
-            }
-            page_selections["filters"] = {
-                id_value["selector"]: values
-                for id_value, values in zip(filter_ids, filters)
+                for id_value, values in zip(filter_ids, filter_values)
             }
 
-            page_selections.update(Colorscale=colorscale if colorscale else None)
-            page_selections.update(ctx_clicked=ctx["prop_id"])
-
-            # check if a page needs to be updated due to page refresh or
-            # change in selections/filters
-            if initial_load[selected_view] or len(previous_selection) == 0:
-                page_selections.update(update=True)
-            else:
-                equal_list = []
-                for selector, values in page_selections.items():
-                    if selector != "ctx_clicked":
-                        equal_list.append(values == previous_selection[selector])
-                page_selections.update(update=not all(equal_list))
-
-            previous_selection = page_selections
-            return previous_selection
+            return filters
 
         @callback(
-            Output(self.get_store_uuid("initial-load-info"), "data"),
-            Input("webviz-content-manager", "activeViewId"),
-            Input(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": ALL,
-                    "selector": ALL,
-                },
-                "value",
+            Output(
+                self.get_store_uuid(ElementIds.Stores.INPLACE_DISTRIBUTIONS), "data"
             ),
             Input(
                 {
-                    "id": self.shared_settings_group(
-                        ElementIds.SharedSettings.Filters.ID
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.PlotControls.ID
                     )
                     .get_uuid()
                     .to_string(),
                     "selector": ALL,
-                    "type": ALL,
                 },
                 "value",
             ),
-            State(self.get_store_uuid("initial-load-info"), "data"),
+            Input(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Settings.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            State(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.PlotControls.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
+            State(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        ElementIds.InplaceDistributions.Settings.Settings.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
         )
-        def _store_initial_load_info(
-            page_selected: str,
-            _selectors_changed: list,
-            _filters_changed: list,
-            initial_load: dict,
-        ) -> Dict[str, bool]:
-            """
-            Store info (True/False) reagarding if a page is initally loaded.
-            Updating filters or selectors will set the value to False
-            """
-            if initial_load is None:
-                initial_load = {}
-            initial_load[page_selected] = page_selected not in initial_load
-            return initial_load
+        def _update_inplace_distributions_selections(
+            plot_controls_values: list,
+            settings_values: list,
+            plot_controls_ids: list,
+            settings_ids: list,
+        ) -> dict:
+            ctx = callback_context.triggered[0]
+            if ctx["prop_id"] == ".":
+                raise PreventUpdate
+
+            ids_values_dict = {
+                id["selector"]: value
+                for id, value in zip(
+                    plot_controls_ids + settings_ids,
+                    plot_controls_values + settings_values,
+                )
+            }
+
+            return ids_values_dict
+
+        @callback(
+            Output(self.get_store_uuid(ElementIds.Stores.TABLES), "data"),
+            Input(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.view(ElementIds.Tables.ID)
+                    .settings_group(ElementIds.Tables.SETTING)
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            State(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.view(ElementIds.Tables.ID)
+                    .settings_group(ElementIds.Tables.SETTING)
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
+        )
+        def _update_table_selections(
+            values: list,
+            ids: list,
+        ) -> dict:
+            ctx = callback_context.triggered[0]
+            if ctx["prop_id"] == ".":
+                raise PreventUpdate
+
+            ids_values_dict = {
+                id["selector"]: value
+                for id, value in zip(
+                    ids,
+                    values,
+                )
+            }
+
+            return ids_values_dict
+
+        @callback(
+            Output(self.get_store_uuid(ElementIds.Stores.TORNADO_PLOTS), "data"),
+            Input(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        ElementIds.TornadoPlots.Settings.TornadoControls.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            Input(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        ElementIds.TornadoPlots.Settings.Settings.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            State(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        ElementIds.TornadoPlots.Settings.TornadoControls.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
+            State(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        ElementIds.TornadoPlots.Settings.Settings.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
+        )
+        def _update_tornado_plots_selections(
+            plot_controls_values: list,
+            settings_values: list,
+            plot_controls_ids: list,
+            settings_ids: list,
+        ) -> dict:
+            ctx = callback_context.triggered[0]
+            if ctx["prop_id"] == ".":
+                raise PreventUpdate
+
+            ids_values_dict = {
+                id["selector"]: value
+                for id, value in zip(
+                    plot_controls_ids + settings_ids,
+                    plot_controls_values + settings_values,
+                )
+            }
+
+            return ids_values_dict
+
+        @callback(
+            Output(self.get_store_uuid(ElementIds.Stores.COMPARISON), "data"),
+            Input(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            Input(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "value",
+            ),
+            State(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
+            State(
+                {
+                    "plugin_id": self.uuid(),
+                    "settings_id": self.shared_settings_group(
+                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                },
+                "id",
+            ),
+        )
+        def _update_sensitivity_comparison_selections(
+            plot_controls_values: list,
+            settings_values: list,
+            plot_controls_ids: list,
+            settings_ids: list,
+        ) -> dict:
+            ctx = callback_context.triggered[0]
+            if ctx["prop_id"] == ".":
+                raise PreventUpdate
+
+            ids_values_dict = {
+                id["selector"]: value
+                for id, value in zip(
+                    plot_controls_ids + settings_ids,
+                    plot_controls_values + settings_values,
+                )
+            }
+
+            return ids_values_dict
 
         @callback(
             Output(
@@ -565,7 +809,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 },
                 "id",
             ),
-            State(self.get_store_uuid("selections"), "data"),
+            State(self.get_store_uuid(ElementIds.Stores.INPLACE_DISTRIBUTIONS), "data"),
         )
         # pylint: disable=too-many-locals
         def _plot_options(
@@ -629,9 +873,11 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     selector == "Y Response"
                     and selections["Plot type"] in ["distribution", "histogram"]
                 )
-                value = None if disable else selections.get(selector)
 
-                settings[selector] = {"disable": disable, "value": value}
+                settings[selector] = {
+                    "disable": disable,
+                    "value": selections.get(selector),
+                }
 
             # update dropdown options based on plot type
             if settings["Plot type"]["value"] == "scatter":
@@ -1062,7 +1308,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 },
                 "value",
             ),
-            State(self.get_store_uuid("selections"), "data"),
+            State(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
             State("webviz-content-manager", "activeViewId"),
             State(
                 {
@@ -1091,7 +1337,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         )
         def _update_realization_selected_info(
             input_selectors: list,
-            selections: dict,
+            filters: dict,
             active_view_id: str,
             input_ids: list,
             wrapper_ids: list,
@@ -1100,11 +1346,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 raise PreventUpdate
 
             reals = self.volumes_model.realizations
-            prev_selection = (
-                selections["filters"].get("REAL", [])
-                if selections is not None
-                else None
-            )
+            prev_selection = filters.get("REAL", []) if filters is not None else None
             selected_component = [
                 value for id_value, value in zip(input_ids, input_selectors)
             ][0]
@@ -1193,7 +1435,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 },
                 "id",
             ),
-            State(self.get_store_uuid("selections"), "data"),
+            State(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
             State(
                 {
                     "id": self.shared_settings_group(
@@ -1222,7 +1464,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         def update_region_filters(
             selected_reg_filter: list,
             reg_filter_ids: list,
-            selections: dict,
+            filters: dict,
             wrapper_ids: list,
             reg_select_ids: list,
         ) -> tuple:
@@ -1237,7 +1479,6 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
             ]
 
             df = self.volumes_model.dataframe
-            filters = selections["filters"]
 
             values = {}
             if selected[0] != "fipnum":
@@ -1293,8 +1534,12 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 Output(
                     {
                         "plugin_id": self.uuid(),
-                        "settings_id": self.view(ElementIds.SourceComparison.ID)
-                        .shared_settings_group(ElementIds.SourceComparison.Settings.ID)
+                        "settings_id": self.view(
+                            ElementIds.Comparison.SourceComparison.ID
+                        )
+                        .shared_settings_group(
+                            ElementIds.Comparison.Settings.Settings.ID
+                        )
                         .get_uuid()
                         .to_string(),
                         "selector": "Ignore <",
@@ -1304,8 +1549,12 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 Input(
                     {
                         "plugin_id": self.uuid(),
-                        "settings_id": self.view(ElementIds.SourceComparison.ID)
-                        .shared_settings_group(ElementIds.SourceComparison.Settings.ID)
+                        "settings_id": self.view(
+                            ElementIds.Comparison.SourceComparison.ID
+                        )
+                        .shared_settings_group(
+                            ElementIds.Comparison.Settings.Settings.ID
+                        )
                         .get_uuid()
                         .to_string(),
                         "selector": "Response",

@@ -29,6 +29,7 @@ def tornado_figure_and_table(
     tornado_data: TornadoData,
     response: str,
     selections: dict,
+    filters: dict,
     theme: WebvizConfigTheme,
     sensitivity_colors: dict,
     font_size: float,
@@ -51,7 +52,7 @@ def tornado_figure_and_table(
 
     figure.update_xaxes(side="bottom", title=None).update_layout(
         title_text=f"Tornadoplot for {response} <br>"
-        + f"Fluid zone: {(' + ').join(selections['filters']['FLUID_ZONE'])}"
+        + f"Fluid zone: {(' + ').join(filters['FLUID_ZONE'])}"
         if group is None
         else f"{response} {group}",
         title_font_size=font_size,

@@ -7,7 +7,7 @@ from webviz_config.webviz_plugin_subclasses import (
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 
-from dash import Input, Output, callback, html
+from dash import ALL, Input, Output, callback, html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
@@ -16,10 +16,7 @@ from webviz_subsurface._abbreviations.volume_terminology import (
     volume_unit,
 )
 from webviz_subsurface._figures import create_figure
-from ...utils.table_and_figure_utils import (
-    fluid_annotation,
-    make_tables
-)
+from ...utils.table_and_figure_utils import fluid_annotation, make_tables
 
 from ..._layout_elements import ElementIds
 
@@ -91,10 +88,12 @@ class InplaceDistributionsCustomPlotting(ViewABC):
             Output(self.response_table.get_uuid().to_string(), "hidden"),
             Output(self.property_table.get_uuid().to_string(), "children"),
             Output(self.property_table.get_uuid().to_string(), "hidden"),
-            Input(self.get_store_uuid("selections"), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.INPLACE_DISTRIBUTIONS), "data"),
+            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_plot_and_tables(
             selections: dict,
+            filters: dict,
         ) -> Tuple[dict, dict, Component, bool, Component, bool]:
             if selections is None:
                 raise PreventUpdate
@@ -126,7 +125,7 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                 ]
 
             dframe = self.volumes_model.get_df(
-                filters=selections["filters"], groups=groups, parameters=parameters
+                filters=filters, groups=groups, parameters=parameters
             )
 
             if dframe.empty:
@@ -175,7 +174,7 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                     ),
                     yaxis=dict(showticklabels=True),
                 )
-                .add_annotation(fluid_annotation(selections))
+                .add_annotation(fluid_annotation(selections, filters))
                 .update_xaxes(
                     {"matches": None} if not selections["X axis matches"] else {}
                 )
@@ -195,6 +194,7 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                 groups=groups,
                 volumemodel=self.volumes_model,
                 selections=selections,
+                filters=filters,
                 table_type="Statistics table",
                 view_height=37,
             )
