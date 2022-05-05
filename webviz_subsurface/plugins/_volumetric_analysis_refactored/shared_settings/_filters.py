@@ -5,7 +5,7 @@ from webviz_config.webviz_plugin_subclasses import (
 )
 from dash.development.base_component import Component
 
-from dash import Input, Output, State, callback, html
+from dash import ALL, Input, Output, State, callback, html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
@@ -27,13 +27,11 @@ class Filters(SettingsGroupABC):
 
     def filter_dropdowns(
         self,
-        hide_selectors: Optional[list] = None,
     ) -> html.Div:
         """Makes dropdowns for each selector"""
         dropdowns_layout: List[html.Div] = []
-        hide_selectors = ["SENSNAME", "SENSTYPE", "SENSCASE"] + (
-            hide_selectors if hide_selectors is not None else []
-        )
+        hide_selectors = ["SENSNAME", "SENSTYPE", "SENSCASE"]
+
         selectors = [
             x
             for x in self.volumes_model.selectors

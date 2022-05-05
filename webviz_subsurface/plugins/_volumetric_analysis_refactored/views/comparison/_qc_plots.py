@@ -48,6 +48,7 @@ class QCPlots(ViewABC):
         self.compare_on = compare_on
 
         column = self.add_column()
+        column.add_view_element(Plot(), ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_REAL)
         row = column.make_row()
         row.add_view_element(
             Plot(), ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_RESPONSE
@@ -59,6 +60,18 @@ class QCPlots(ViewABC):
 
     def set_callbacks(self) -> None:
         @callback(
+            Output(
+                self.view_element(ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_REAL)
+                .component_uuid(ElementIds.Comparison.GRAPH)
+                .to_string(),
+                "figure",
+            ),
+            Output(
+                self.view_element(ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_REAL)
+                .get_uuid()
+                .to_string(),
+                "hidden",
+            ),
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_RESPONSE)
                 .component_uuid(ElementIds.Comparison.GRAPH)
@@ -95,7 +108,7 @@ class QCPlots(ViewABC):
         def _update_page_ens_comp(
             selections: dict,
             filters: dict,
-        ) -> Tuple[dict, bool, dict, bool, html.Div]:
+        ) -> Tuple[dict, bool, dict, bool, dict, bool, html.Div]:
             return self.comparison_callback(
                 compare_on="SENSNAME_CASE"
                 if self.compare_on == "Sensitivity"
@@ -111,7 +124,15 @@ class QCPlots(ViewABC):
         filters: dict,
     ) -> Tuple[dict, bool, dict, bool, html.Div]:
         if selections["value1"] == selections["value2"]:
-            return ({}, True, {}, True, html.Div("Comparison between equal data"))
+            return (
+                {},
+                True,
+                {},
+                True,
+                {},
+                True,
+                html.Div("Comparison between equal data"),
+            )
 
         # Handle None in highlight criteria input
         for key in ["Accept value", "Ignore <"]:
@@ -160,7 +181,15 @@ class QCPlots(ViewABC):
         df = diffdf_group if "REAL" not in groupby else diffdf_real
 
         if df.empty:
-            return ({}, True, {}, True, html.Div("No data left after filtering"))
+            return (
+                {},
+                True,
+                {},
+                True,
+                {},
+                True,
+                html.Div("No data left after filtering"),
+            )
 
         if "|" in selections["value1"]:
             ens1, sens1 = selections["value1"].split("|")
@@ -208,10 +237,12 @@ class QCPlots(ViewABC):
         )
 
         return (
-            scatter_diff_vs_response,
-            False,
-            scatter_diff_vs_real,
-            False,
+            scatter_diff_vs_real if scatter_diff_vs_real is not None else {},
+            scatter_diff_vs_real is None,
+            scatter_diff_vs_response if scatter_diff_vs_response is not None else {},
+            scatter_diff_vs_response is None,
+            scatter_corr if scatter_corr is not None else {},
+            scatter_corr is None,
             html.Div("No data within highlight criteria")
             if barfig_non_highlighted is None
             else html.Div(
@@ -238,6 +269,10 @@ class QCPlots(ViewABC):
         rename_diff_col: bool = False,
     ) -> pd.DataFrame:
 
+        filters_subset = {
+            key: value for key, value in filters.items() if key in ["REGION", "ZONE"]
+        }
+
         resp = selections["Response"]
         adiitional_groups = [
             x
@@ -245,7 +280,7 @@ class QCPlots(ViewABC):
             if x in volumemodel.selectors
         ]
         groups = groups + adiitional_groups
-        df = volumemodel.get_df(filters, groups=groups)
+        df = volumemodel.get_df(filters_subset, groups=groups)
 
         # filter dataframe and set values to compare against
         if not "|" in selections["value1"]:
@@ -298,7 +333,7 @@ class QCPlots(ViewABC):
             df = df.rename(
                 columns={f"{resp} diff": "diff", f"{resp} diff (%)": "diff (%)"}
             )
-        df = self.add_fluid_zone_column(df, filters)
+        df = self.add_fluid_zone_column(df, filters_subset)
         return df.sort_values(by=[abssort_on], key=abs, ascending=False)
 
     def find_higlighted_real_count(

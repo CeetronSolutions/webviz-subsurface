@@ -8,6 +8,8 @@ class ElementIds:
         COMPARISON = "comparison"
 
     class InplaceDistributions:
+        NAME = "Inplace distributions"
+
         class CustomPlotting:
             ID = "custom_plots"
 
@@ -68,31 +70,23 @@ class ElementIds:
         DIV = "div"
         SETTING = "table_controls"
 
-    class EnsembleComparison:
-        ID = "ensemble_comparison"
-
-        class Settings:
-            ID = "settings"
-
-    class SensitivityComparison:
-        ID = "sensitivity_comparison"
-
-        class Settings:
-            ID = "settings"
-
     class Comparison:
         class SourceComparison:
+            NAME = "Source comparison"
             ID = "source_comparison"
 
         class EnsembleComparison:
+            NAME = "Ensemble comparison"
             ID = "ensemble_comparison"
 
         class SensitivityComparison:
+            NAME = "Sensitivity comparison"
             ID = "sensitivity_comparison"
 
         class QCPlots:
             ID = "qc_plots"
 
+            PLOT_DIFF_VS_REAL = "diff_vs_real"
             PLOT_DIFF_VS_RESPONSE = "diff_vs_response"
             PLOT_CORRELATION = "correlation"
             HIGHLIGHTED_DATA = "highlighted_data"
@@ -116,6 +110,8 @@ class ElementIds:
         ID = "fipqc"
 
     class TornadoPlots:
+        NAME = "Tornadoplots"
+
         class Custom:
             ID = "tornado_plots_custom"
 

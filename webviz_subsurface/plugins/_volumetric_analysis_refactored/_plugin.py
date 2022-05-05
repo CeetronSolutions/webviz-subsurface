@@ -134,19 +134,19 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         self.add_view(
             InplaceDistributionsCustomPlotting(self.volumes_model),
             ElementIds.InplaceDistributions.CustomPlotting.ID,
-            "Inplace distributions",
+            ElementIds.InplaceDistributions.NAME,
         )
 
         self.add_view(
             InplaceDistributionsPlotsPerZoneRegion(self.volumes_model),
             ElementIds.InplaceDistributions.PlotsPerZoneRegion.ID,
-            "Inplace distributions",
+            ElementIds.InplaceDistributions.NAME,
         )
 
         self.add_view(
             InplaceDistributionsConvergencePlot(self.volumes_model),
             ElementIds.InplaceDistributions.ConvergencePlot.ID,
-            "Inplace distributions",
+            ElementIds.InplaceDistributions.NAME,
         )
 
         self.add_shared_settings_group(
@@ -192,12 +192,12 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
             self.add_view(
                 TornadoPlotsCustom(volumes_model=self.volumes_model, theme=self.theme),
                 ElementIds.TornadoPlots.Custom.ID,
-                "Tornadoplots",
+                ElementIds.TornadoPlots.NAME,
             )
             self.add_view(
                 TornadoPlotsBulk(self.volumes_model, self.theme),
                 ElementIds.TornadoPlots.BulkVsStoiipGiip.ID,
-                "Tornadoplots",
+                ElementIds.TornadoPlots.NAME,
             )
 
             self.add_shared_settings_group(
@@ -226,17 +226,17 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
             self.add_view(
                 QCPlots(compare_on="Source", volumes_model=self.volumes_model),
                 f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.QCPlots.ID}",
-                "Source comparison",
+                ElementIds.Comparison.SourceComparison.NAME,
             )
             self.add_view(
                 DiffTableSelectedResponse(volumes_model=self.volumes_model),
                 f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                "Source comparison",
+                ElementIds.Comparison.SourceComparison.NAME,
             )
             self.add_view(
                 DiffTableMultipleResponses(volumes_model=self.volumes_model),
                 f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
-                "Source comparison",
+                ElementIds.Comparison.SourceComparison.NAME,
             )
 
             self.add_shared_settings_group(
@@ -288,17 +288,17 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 self.add_view(
                     QCPlots(compare_on="Ensemble", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.QCPlots.ID}",
-                    "Ensemble comparison",
+                    ElementIds.Comparison.EnsembleComparison.NAME,
                 )
                 self.add_view(
                     DiffTableSelectedResponse(volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                    "Ensemble comparison",
+                    ElementIds.Comparison.EnsembleComparison.NAME,
                 )
                 self.add_view(
                     DiffTableMultipleResponses(volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
-                    "Ensemble comparison",
+                    ElementIds.Comparison.EnsembleComparison.NAME,
                 )
 
                 self.add_shared_settings_group(
@@ -348,17 +348,17 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 self.add_view(
                     QCPlots(compare_on="Sensitivity", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.QCPlots.ID}",
-                    "Sensitivity comparison",
+                    ElementIds.Comparison.SensitivityComparison.NAME,
                 )
                 self.add_view(
                     DiffTableSelectedResponse(volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
-                    "Sensitivity comparison",
+                    ElementIds.Comparison.SensitivityComparison.NAME,
                 )
                 self.add_view(
                     DiffTableMultipleResponses(volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
-                    "Sensitivity comparison",
+                    ElementIds.Comparison.SensitivityComparison.NAME,
                 )
 
                 self.add_shared_settings_group(
@@ -1022,24 +1022,40 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
             filter_ids: list,
         ) -> tuple:
 
-            distribution_view_ids = [
-                self.view(ElementIds.InplaceDistributions.CustomPlotting.ID)
-                .get_uuid()
-                .to_string(),
-                self.view(ElementIds.InplaceDistributions.PlotsPerZoneRegion.ID)
-                .get_uuid()
-                .to_string(),
-                self.view(ElementIds.InplaceDistributions.ConvergencePlot.ID)
-                .get_uuid()
-                .to_string(),
-            ]
+            distribution_view_ids = list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.InplaceDistributions.NAME),
+                )
+            )
 
-            tornado_view_ids = [
-                self.view(ElementIds.TornadoPlots.Custom.ID).get_uuid().to_string(),
-                self.view(ElementIds.TornadoPlots.BulkVsStoiipGiip.ID)
-                .get_uuid()
-                .to_string(),
-            ]
+            tornado_view_ids = list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.TornadoPlots.NAME),
+                )
+            )
+
+            source_comparison_views = list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.Comparison.SourceComparison.NAME),
+                )
+            )
+
+            ensemble_comparison_views = list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.Comparison.EnsembleComparison.NAME),
+                )
+            )
+
+            sensitivity_comparison_views = list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.Comparison.SensitivityComparison.NAME),
+                )
+            )
 
             active_settings_ids = []
 
@@ -1082,6 +1098,51 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     .get_uuid()
                     .to_string()
                 )
+            elif active_view_id in source_comparison_views:
+                active_settings_ids.append(
+                    self.shared_settings_group(
+                        f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}"
+                    )
+                    .get_uuid()
+                    .to_string()
+                )
+                active_settings_ids.append(
+                    self.shared_settings_group(
+                        f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}"
+                    )
+                    .get_uuid()
+                    .to_string()
+                )
+            elif active_view_id in ensemble_comparison_views:
+                active_settings_ids.append(
+                    self.shared_settings_group(
+                        f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}"
+                    )
+                    .get_uuid()
+                    .to_string()
+                )
+                active_settings_ids.append(
+                    self.shared_settings_group(
+                        f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}"
+                    )
+                    .get_uuid()
+                    .to_string()
+                )
+            elif active_view_id in sensitivity_comparison_views:
+                active_settings_ids.append(
+                    self.shared_settings_group(
+                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}"
+                    )
+                    .get_uuid()
+                    .to_string()
+                )
+                active_settings_ids.append(
+                    self.shared_settings_group(
+                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}"
+                    )
+                    .get_uuid()
+                    .to_string()
+                )
 
             page_selections = {
                 id_value["selector"]: values
@@ -1109,12 +1170,18 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 selected_data = page_selections["Group by"]
             if active_view_id in tornado_view_ids:
                 selected_data = ["SENSNAME_CASE", page_selections["Subplots"]]
-            if active_view_id == self.unverified_view_uuid(
-                ElementIds.Comparison.EnsembleComparison.ID
+            if active_view_id in list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.Comparison.EnsembleComparison.NAME),
+                )
             ):
                 selected_data = ["SENSNAME_CASE", "ENSEMBLE"]
-            if active_view_id == self.unverified_view_uuid(
-                ElementIds.Comparison.SourceComparison.ID
+            if active_view_id in list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.Comparison.SourceComparison.NAME),
+                )
             ):
                 selected_data = ["SOURCE"]
 
@@ -1178,6 +1245,82 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                         for selector, values in output.items()
                     ],
                 ),
+            )
+
+        @callback(
+            Output(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.SharedSettings.Filters.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "wrapper": ALL,
+                    "type": "undef",
+                },
+                "style",
+            ),
+            Input("webviz-content-manager", "activeViewId"),
+            State(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.SharedSettings.Filters.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "wrapper": ALL,
+                    "type": "undef",
+                },
+                "id",
+            ),
+            State(
+                {
+                    "id": self.shared_settings_group(
+                        ElementIds.SharedSettings.Filters.ID
+                    )
+                    .get_uuid()
+                    .to_string(),
+                    "selector": ALL,
+                    "type": "undef",
+                },
+                "options",
+            ),
+        )
+        def _hide_filters(
+            active_view_id: str, filter_ids: list, elements: list
+        ) -> tuple:
+            hide_selectors = ["SENSNAME", "SENSTYPE", "SENSCASE"]
+
+            if active_view_id in list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.TornadoPlots.NAME),
+                )
+            ):
+                hide_selectors += ["SENSNAME_CASE"]
+
+            if active_view_id in list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.Comparison.SourceComparison.NAME),
+                )
+            ):
+                hide_selectors += ["SOURCE", "FLUID_ZONE"]
+
+            if active_view_id in list(
+                map(
+                    lambda x: x[1].get_uuid().to_string(),
+                    self.views(ElementIds.Comparison.EnsembleComparison.NAME)
+                    + self.views(ElementIds.Comparison.SensitivityComparison.NAME),
+                )
+            ):
+                hide_selectors += ["ENSEMBLE", "FLUID_ZONE", "SENSNAME_CASE"]
+
+            return tuple(
+                {"display": "none"}
+                if (filter["wrapper"] in hide_selectors or len(options) <= 1)
+                else {"display": ""}
+                for filter, options in zip(filter_ids, elements)
             )
 
         @callback(
