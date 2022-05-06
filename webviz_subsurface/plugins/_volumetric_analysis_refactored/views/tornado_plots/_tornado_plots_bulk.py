@@ -130,7 +130,7 @@ class TornadoPlotsBulk(ViewABC):
             if selections["Shared axis"] and selections["Scale"] != "True":
                 update_tornado_figures_xaxis(figures)
 
-            bottom_display: Optional[list] = []
+            bottom_display: Optional[Component] = None
             if selections["bottom_viz"] == "table" and figures:
                 bottom_display = create_data_table(
                     columns=columns,
@@ -140,7 +140,7 @@ class TornadoPlotsBulk(ViewABC):
                     table_id={"table_id": f"{self.get_uuid().to_string()}-torntable"},
                 )
             elif selections["bottom_viz"] == "realplot" and figures:
-                bottom_display = [
+                bottom_display = (
                     wcc.Graph(
                         config={"displayModeBar": False},
                         style={"height": "40vh"},
@@ -148,7 +148,7 @@ class TornadoPlotsBulk(ViewABC):
                     )
                     if not subplots
                     else "Realization plot not available when `Subplots` is active"
-                ]
+                )
 
             return (
                 tornado_plots_layout(

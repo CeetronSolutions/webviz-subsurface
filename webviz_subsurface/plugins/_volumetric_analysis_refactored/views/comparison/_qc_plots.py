@@ -18,6 +18,8 @@ from ...utils.table_and_figure_utils import (
     add_correlation_line,
 )
 
+from.utils import find_higlighted_real_count
+
 
 class Plot(ViewElementABC):
     def __init__(self) -> None:
@@ -122,7 +124,7 @@ class QCPlots(ViewABC):
         compare_on: str,
         selections: dict,
         filters: dict,
-    ) -> Tuple[dict, bool, dict, bool, html.Div]:
+    ) -> Tuple[dict, bool, dict, bool, dict, bool, html.Div]:
         if selections["value1"] == selections["value2"]:
             return (
                 {},
@@ -172,7 +174,7 @@ class QCPlots(ViewABC):
             if compare_on == "SOURCE" and not diffdf_group.empty:
                 # Add column with number of highlighted realizations
                 diffdf_group["💡 reals"] = diffdf_group.apply(
-                    lambda row: self.find_higlighted_real_count(
+                    lambda row: find_higlighted_real_count(
                         row, diffdf_real, groupby
                     ),
                     axis=1,
@@ -335,13 +337,6 @@ class QCPlots(ViewABC):
             )
         df = self.add_fluid_zone_column(df, filters_subset)
         return df.sort_values(by=[abssort_on], key=abs, ascending=False)
-
-    def find_higlighted_real_count(
-        self, row: pd.Series, df_per_real: pd.DataFrame, groups: list
-    ) -> str:
-        query = " & ".join([f"{col}=='{row[col]}'" for col in groups])
-        result = df_per_real.query(query) if groups else df_per_real
-        return str(len(result[result["highlighted"] == "yes"]))
 
     def create_scatterfig(
         self,

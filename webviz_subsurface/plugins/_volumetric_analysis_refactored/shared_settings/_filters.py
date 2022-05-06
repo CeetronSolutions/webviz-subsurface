@@ -98,7 +98,7 @@ class Filters(SettingsGroupABC):
 
     def fipnum_vs_zone_region_switch(self) -> wcc.RadioItems:
         return wcc.RadioItems(
-            id=self.register_component_uuid("region-selector"),
+            id={"id": self.get_uuid().to_string(), "element": "region-selector"},
             options=[
                 {"label": "Region∕Zone", "value": "regzone"},
                 {"label": "Fipnum", "value": "fipnum"},
@@ -120,14 +120,14 @@ class Filters(SettingsGroupABC):
                             style={"font-weight": "bold"},
                         ),
                         html.Span(
-                            id=self.register_component_uuid("real_text"),
+                            id={"id": self.get_uuid().to_string(), "element": "real_text"},
                             style={"margin-left": "10px"},
                             children=f"{min(reals)}-{max(reals)}",
                         ),
                     ],
                 ),
                 wcc.RadioItems(
-                    id=self.register_component_uuid("real-selector-option"),
+                    id={"id": self.get_uuid().to_string(), "element": "real-selector-option"},
                     options=[
                         {"label": "Range", "value": "range"},
                         {"label": "Select", "value": "select"},
@@ -136,8 +136,11 @@ class Filters(SettingsGroupABC):
                     vertical=False,
                 ),
                 wcc.RangeSlider(
-                    wrapper_id=self.register_component_uuid("real-slider-wrapper"),
-                    id=self.register_component_uuid("range"),
+                    wrapper_id={"id": self.get_uuid().to_string(), "element": "real-slider-wrapper"},
+                    id={
+                        "id": self.get_uuid().to_string(),
+                        "component_type": "range",
+                    },
                     value=[min(reals), max(reals)],
                     min=min(reals),
                     max=max(reals),
@@ -146,7 +149,11 @@ class Filters(SettingsGroupABC):
                 html.Div(
                     style={"display": "none"},
                     children=wcc.Select(
-                        id=self.register_component_uuid("REAL"),
+                        id={
+                            "id": self.get_uuid().to_string(),
+                            "selector": "REAL",
+                            "type": "REAL",
+                        },
                         options=[{"label": i, "value": i} for i in reals],
                         value=reals,
                     ),

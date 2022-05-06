@@ -150,5 +150,5 @@ class InplaceDistributionsPlotsPerZoneRegion(ViewABC):
         )
 
         if selections["X Response"] not in self.volumes_model.hc_responses:
-            barfig.add_annotation(fluid_annotation(selections))
+            barfig.add_annotation(fluid_annotation(selections, filters))
         return (barfig, piefig if piefig else {}, False, piefig is None)

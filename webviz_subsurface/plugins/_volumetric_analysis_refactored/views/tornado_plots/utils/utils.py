@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from webviz_config import WebvizConfigTheme
 import webviz_core_components as wcc
+from dash.development.base_component import Component
 from dash import html, no_update
 
 from webviz_subsurface._components.tornado._tornado_bar_chart import TornadoBarChart
@@ -151,7 +152,7 @@ def sens_colors(volumes_model: InplaceVolumesModel) -> dict:
 
 
 def tornado_plots_layout(
-    view_id: str, figures: list, bottom_display: Optional[list]
+    view_id: str, figures: list, bottom_display: Optional[Component]
 ) -> wcc.WebvizPluginLayoutColumn:
     matrix = create_figure_matrix(figures)
     max_height = 45 if bottom_display != None else 86
@@ -183,6 +184,7 @@ def tornado_plots_layout(
                 children=[bottom_display],
                 hidden=bottom_display is None,
             )
+
         ]
     )
 

@@ -9,6 +9,7 @@ from webviz_config import WebvizPluginABC, WebvizSettings
 from webviz_config.common_cache import CACHE
 from webviz_config.webviz_assets import WEBVIZ_ASSETS
 from webviz_config.webviz_store import webvizstore
+from dash.development.base_component import Component
 
 import webviz_subsurface
 import webviz_core_components as wcc
@@ -229,12 +230,12 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 ElementIds.Comparison.SourceComparison.NAME,
             )
             self.add_view(
-                DiffTableSelectedResponse(volumes_model=self.volumes_model),
+                DiffTableSelectedResponse(compare_on="Source", volumes_model=self.volumes_model),
                 f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
                 ElementIds.Comparison.SourceComparison.NAME,
             )
             self.add_view(
-                DiffTableMultipleResponses(volumes_model=self.volumes_model),
+                DiffTableMultipleResponses(compare_on="Source", volumes_model=self.volumes_model),
                 f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
                 ElementIds.Comparison.SourceComparison.NAME,
             )
@@ -291,12 +292,12 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     ElementIds.Comparison.EnsembleComparison.NAME,
                 )
                 self.add_view(
-                    DiffTableSelectedResponse(volumes_model=self.volumes_model),
+                    DiffTableSelectedResponse(compare_on="Ensemble", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
                     ElementIds.Comparison.EnsembleComparison.NAME,
                 )
                 self.add_view(
-                    DiffTableMultipleResponses(volumes_model=self.volumes_model),
+                    DiffTableMultipleResponses(compare_on="Ensemble", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.EnsembleComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
                     ElementIds.Comparison.EnsembleComparison.NAME,
                 )
@@ -351,12 +352,12 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     ElementIds.Comparison.SensitivityComparison.NAME,
                 )
                 self.add_view(
-                    DiffTableSelectedResponse(volumes_model=self.volumes_model),
+                    DiffTableSelectedResponse(compare_on="Sensitivity", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableSelectedResponse.ID}",
                     ElementIds.Comparison.SensitivityComparison.NAME,
                 )
                 self.add_view(
-                    DiffTableMultipleResponses(volumes_model=self.volumes_model),
+                    DiffTableMultipleResponses(compare_on="Sensitivity", volumes_model=self.volumes_model),
                     f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.DiffTableMultipleResponses.ID}",
                     ElementIds.Comparison.SensitivityComparison.NAME,
                 )
@@ -1402,10 +1403,10 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
             real_filter_id: list,
         ) -> tuple:
             """Callback that updates the selected relization info and text"""
-            if active_view_id == self.view(ElementIds.FipQC.ID).get_uuid().to_string():
+            if active_view_id == self.unverified_view_uuid(ElementIds.FipQC.ID):
                 raise PreventUpdate
 
-            real_list = [int(real) for real in reals]
+            real_list = [int(real) for real in reals[0]]
 
             if reals_ids[0]["component_type"] == "range":
                 real_list = list(range(real_list[0], real_list[1] + 1))
@@ -1434,7 +1435,6 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     )
                     .get_uuid()
                     .to_string(),
-                    "tab": ALL,
                     "element": "real-slider-wrapper",
                 },
                 "children",
@@ -1446,7 +1446,6 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     )
                     .get_uuid()
                     .to_string(),
-                    "tab": ALL,
                     "element": "real-selector-option",
                 },
                 "value",
@@ -1460,7 +1459,6 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     )
                     .get_uuid()
                     .to_string(),
-                    "tab": ALL,
                     "element": "real-selector-option",
                 },
                 "id",
@@ -1472,27 +1470,24 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     )
                     .get_uuid()
                     .to_string(),
-                    "tab": ALL,
                     "element": "real-slider-wrapper",
                 },
                 "id",
             ),
         )
         def _update_realization_selected_info(
-            input_selectors: list,
+            input_selector: str,
             filters: dict,
             active_view_id: str,
-            input_ids: list,
-            wrapper_ids: list,
-        ) -> list:
-            if active_view_id == self.view(ElementIds.FipQC.ID).get_uuid().to_string():
+            input_id: dict,
+            wrapper_id: dict,
+        ) -> Component:
+            if active_view_id == self.unverified_view_uuid(ElementIds.FipQC.ID):
                 raise PreventUpdate
 
             reals = self.volumes_model.realizations
             prev_selection = filters.get("REAL", []) if filters is not None else None
-            selected_component = [
-                value for id_value, value in zip(input_ids, input_selectors)
-            ][0]
+            selected_component = input_selector
             selected_reals = prev_selection if prev_selection is not None else reals
 
             component = (
@@ -1525,10 +1520,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     size=min(20, len(reals)),
                 )
             )
-            return update_relevant_components(
-                id_list=wrapper_ids,
-                update_info=[{"new_value": component, "conditions": {}}],
-            )
+            return component
 
         @callback(
             Output(

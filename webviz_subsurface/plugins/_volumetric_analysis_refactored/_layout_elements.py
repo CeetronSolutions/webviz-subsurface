@@ -94,10 +94,17 @@ class ElementIds:
         class DiffTableSelectedResponse:
             ID = "diff_table_selected_response"
 
+            VIEW_TABLE = "view_table"
+
         class DiffTableMultipleResponses:
             ID = "diff_table_multiple_responses"
 
         GRAPH = "graph"
+        TABLE = "table"
+        HEADER = "header"
+        SELECTION = "selection"
+        FILTER = "filter"
+        TABLE = "table"
 
         class Settings:
             class Controls:
