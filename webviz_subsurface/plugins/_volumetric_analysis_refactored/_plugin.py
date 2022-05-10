@@ -570,147 +570,151 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
 
             return ids_values_dict
 
-        @callback(
-            Output(self.get_store_uuid(ElementIds.Stores.TORNADO_PLOTS), "data"),
-            Input(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": self.shared_settings_group(
-                        ElementIds.TornadoPlots.Settings.TornadoControls.ID
-                    )
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "value",
-            ),
-            Input(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": self.shared_settings_group(
-                        ElementIds.TornadoPlots.Settings.Settings.ID
-                    )
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "value",
-            ),
-            State(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": self.shared_settings_group(
-                        ElementIds.TornadoPlots.Settings.TornadoControls.ID
-                    )
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "id",
-            ),
-            State(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": self.shared_settings_group(
-                        ElementIds.TornadoPlots.Settings.Settings.ID
-                    )
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "id",
-            ),
-        )
-        def _update_tornado_plots_selections(
-            plot_controls_values: list,
-            settings_values: list,
-            plot_controls_ids: list,
-            settings_ids: list,
-        ) -> dict:
-            ctx = callback_context.triggered[0]
-            if ctx["prop_id"] == ".":
-                raise PreventUpdate
 
-            ids_values_dict = {
-                id["selector"]: value
-                for id, value in zip(
-                    plot_controls_ids + settings_ids,
-                    plot_controls_values + settings_values,
+        if self.volumes_model.sensrun:
+            @callback(
+                Output(self.get_store_uuid(ElementIds.Stores.TORNADO_PLOTS), "data"),
+                Input(
+                    {
+                        "plugin_id": self.uuid(),
+                        "settings_id": self.shared_settings_group(
+                            ElementIds.TornadoPlots.Settings.TornadoControls.ID
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        "selector": ALL,
+                    },
+                    "value",
+                ),
+                Input(
+                    {
+                        "plugin_id": self.uuid(),
+                        "settings_id": self.shared_settings_group(
+                            ElementIds.TornadoPlots.Settings.Settings.ID
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        "selector": ALL,
+                    },
+                    "value",
+                ),
+                State(
+                    {
+                        "plugin_id": self.uuid(),
+                        "settings_id": self.shared_settings_group(
+                            ElementIds.TornadoPlots.Settings.TornadoControls.ID
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        "selector": ALL,
+                    },
+                    "id",
+                ),
+                State(
+                    {
+                        "plugin_id": self.uuid(),
+                        "settings_id": self.shared_settings_group(
+                            ElementIds.TornadoPlots.Settings.Settings.ID
+                        )
+                        .get_uuid()
+                        .to_string(),
+                        "selector": ALL,
+                    },
+                    "id",
+                ),
+            )
+            def _update_tornado_plots_selections(
+                plot_controls_values: list,
+                settings_values: list,
+                plot_controls_ids: list,
+                settings_ids: list,
+            ) -> dict:
+                ctx = callback_context.triggered[0]
+                if ctx["prop_id"] == ".":
+                    raise PreventUpdate
+
+                ids_values_dict = {
+                    id["selector"]: value
+                    for id, value in zip(
+                        plot_controls_ids + settings_ids,
+                        plot_controls_values + settings_values,
+                    )
+                }
+
+                return ids_values_dict
+
+        if len(self.volumes_model.ensembles) > 1 or self.volumes_model.sensrun:
+            if len(self.volumes_model.ensembles) <= 1:
+                @callback(
+                    Output(self.get_store_uuid(ElementIds.Stores.COMPARISON), "data"),
+                    Input(
+                        {
+                            "plugin_id": self.uuid(),
+                            "settings_id": self.shared_settings_group(
+                                f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
+                            )
+                            .get_uuid()
+                            .to_string(),
+                            "selector": ALL,
+                        },
+                        "value",
+                    ),
+                    Input(
+                        {
+                            "plugin_id": self.uuid(),
+                            "settings_id": self.shared_settings_group(
+                                f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
+                            )
+                            .get_uuid()
+                            .to_string(),
+                            "selector": ALL,
+                        },
+                        "value",
+                    ),
+                    State(
+                        {
+                            "plugin_id": self.uuid(),
+                            "settings_id": self.shared_settings_group(
+                                f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
+                            )
+                            .get_uuid()
+                            .to_string(),
+                            "selector": ALL,
+                        },
+                        "id",
+                    ),
+                    State(
+                        {
+                            "plugin_id": self.uuid(),
+                            "settings_id": self.shared_settings_group(
+                                f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
+                            )
+                            .get_uuid()
+                            .to_string(),
+                            "selector": ALL,
+                        },
+                        "id",
+                    ),
                 )
-            }
+                def _update_sensitivity_comparison_selections(
+                    plot_controls_values: list,
+                    settings_values: list,
+                    plot_controls_ids: list,
+                    settings_ids: list,
+                ) -> dict:
+                    ctx = callback_context.triggered[0]
+                    if ctx["prop_id"] == ".":
+                        raise PreventUpdate
 
-            return ids_values_dict
+                    ids_values_dict = {
+                        id["selector"]: value
+                        for id, value in zip(
+                            plot_controls_ids + settings_ids,
+                            plot_controls_values + settings_values,
+                        )
+                    }
 
-        @callback(
-            Output(self.get_store_uuid(ElementIds.Stores.COMPARISON), "data"),
-            Input(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": self.shared_settings_group(
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
-                    )
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "value",
-            ),
-            Input(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": self.shared_settings_group(
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
-                    )
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "value",
-            ),
-            State(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": self.shared_settings_group(
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Controls.ID}",
-                    )
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "id",
-            ),
-            State(
-                {
-                    "plugin_id": self.uuid(),
-                    "settings_id": self.shared_settings_group(
-                        f"{ElementIds.Comparison.SensitivityComparison.ID}-{ElementIds.Comparison.Settings.Settings.ID}",
-                    )
-                    .get_uuid()
-                    .to_string(),
-                    "selector": ALL,
-                },
-                "id",
-            ),
-        )
-        def _update_sensitivity_comparison_selections(
-            plot_controls_values: list,
-            settings_values: list,
-            plot_controls_ids: list,
-            settings_ids: list,
-        ) -> dict:
-            ctx = callback_context.triggered[0]
-            if ctx["prop_id"] == ".":
-                raise PreventUpdate
-
-            ids_values_dict = {
-                id["selector"]: value
-                for id, value in zip(
-                    plot_controls_ids + settings_ids,
-                    plot_controls_values + settings_values,
-                )
-            }
-
-            return ids_values_dict
+                    return ids_values_dict
 
         @callback(
             Output(

@@ -202,11 +202,10 @@ class InplaceDistributionsCustomPlotting(ViewABC):
             response_table_hidden = True
             property_table_hidden = True
 
-            if selections["bottom_viz"] == "table":
-                if tables[0] is not None:
-                    response_table_hidden = False
-                if tables[1] is not None:
-                    property_table_hidden = False
+            if tables[0] is not None:
+                response_table_hidden = False
+            if tables[1] is not None:
+                property_table_hidden = False
 
             return (
                 figure,
