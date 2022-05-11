@@ -5,7 +5,6 @@ class ElementIds:
         INPLACE_DISTRIBUTIONS = "inplace_distributions"
         TABLES = "tables"
         TORNADO_PLOTS = "tornado_plots"
-        COMPARISON = "comparison"
 
     class InplaceDistributions:
         NAME = "Inplace distributions"

@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import webviz_core_components as wcc
 from dash.development.base_component import Component
 from dash import Input, Output, callback, callback_context, html
+from dash.exceptions import PreventUpdate
 from webviz_config.webviz_plugin_subclasses._views import ViewABC, ViewElementABC
 from webviz_subsurface._figures import create_figure
 
@@ -18,7 +19,7 @@ from ...utils.table_and_figure_utils import (
     add_correlation_line,
 )
 
-from.utils import find_higlighted_real_count
+from .utils import find_higlighted_real_count
 
 
 class Plot(ViewElementABC):
@@ -104,13 +105,16 @@ class QCPlots(ViewABC):
                 .to_string(),
                 "children",
             ),
-            Input(self.get_store_uuid(ElementIds.Stores.COMPARISON), "data"),
+            Input(self.get_store_uuid(f"{self.compare_on.lower()}_comparison"), "data"),
             Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_page_ens_comp(
             selections: dict,
             filters: dict,
         ) -> Tuple[dict, bool, dict, bool, dict, bool, html.Div]:
+            if selections is None:
+                raise PreventUpdate
+
             return self.comparison_callback(
                 compare_on="SENSNAME_CASE"
                 if self.compare_on == "Sensitivity"
@@ -174,9 +178,7 @@ class QCPlots(ViewABC):
             if compare_on == "SOURCE" and not diffdf_group.empty:
                 # Add column with number of highlighted realizations
                 diffdf_group["💡 reals"] = diffdf_group.apply(
-                    lambda row: find_higlighted_real_count(
-                        row, diffdf_real, groupby
-                    ),
+                    lambda row: find_higlighted_real_count(row, diffdf_real, groupby),
                     axis=1,
                 )
 

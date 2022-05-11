@@ -5,11 +5,17 @@ from webviz_config.webviz_plugin_subclasses._views import ViewABC, ViewElementAB
 
 from dash import dash_table, Input, Output, callback, callback_context, html
 from dash.development.base_component import Component
+from dash.exceptions import PreventUpdate
 import webviz_core_components as wcc
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
 
 from ..._layout_elements import ElementIds
-from .utils import create_comparison_df, find_higlighted_real_count, create_comparison_table
+from .utils import (
+    create_comparison_df,
+    find_higlighted_real_count,
+    create_comparison_table,
+)
+
 
 class DataTable(ViewElementABC):
     def __init__(
@@ -18,13 +24,29 @@ class DataTable(ViewElementABC):
         super().__init__()
 
     def inner_layout(self) -> Component:
-        return html.Div([
-            wcc.Header(id=self.register_component_uuid(ElementIds.Comparison.HEADER)),
-            html.Div(style={"margin-bottom": "30px", "font-weight": "bold"}, children=[
-                html.Div(id=self.register_component_uuid(ElementIds.Comparison.SELECTION)),
-                html.Div(id=self.register_component_uuid(ElementIds.Comparison.FILTER)),
-            ]), html.Div(id=self.register_component_uuid(ElementIds.Comparison.TABLE))
-        ])
+        return html.Div(
+            [
+                wcc.Header(
+                    id=self.register_component_uuid(ElementIds.Comparison.HEADER)
+                ),
+                html.Div(
+                    style={"margin-bottom": "30px", "font-weight": "bold"},
+                    children=[
+                        html.Div(
+                            id=self.register_component_uuid(
+                                ElementIds.Comparison.SELECTION
+                            )
+                        ),
+                        html.Div(
+                            id=self.register_component_uuid(
+                                ElementIds.Comparison.FILTER
+                            )
+                        ),
+                    ],
+                ),
+                html.Div(id=self.register_component_uuid(ElementIds.Comparison.TABLE)),
+            ]
+        )
 
 
 class DiffTableSelectedResponse(ViewABC):
@@ -33,37 +55,54 @@ class DiffTableSelectedResponse(ViewABC):
         self.volumes_model = volumes_model
         self.compare_on = compare_on
 
-        self.add_view_element(DataTable(), ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE)
+        self.add_view_element(
+            DataTable(), ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
+        )
 
     def set_callbacks(self) -> None:
         @callback(
             Output(
-                self.view_element(ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE)
-                .component_uuid(ElementIds.Comparison.HEADER).to_string(),
+                self.view_element(
+                    ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
+                )
+                .component_uuid(ElementIds.Comparison.HEADER)
+                .to_string(),
                 "children",
             ),
             Output(
-                self.view_element(ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE)
-                .component_uuid(ElementIds.Comparison.SELECTION).to_string(),
+                self.view_element(
+                    ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
+                )
+                .component_uuid(ElementIds.Comparison.SELECTION)
+                .to_string(),
                 "children",
             ),
             Output(
-                self.view_element(ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE)
-                .component_uuid(ElementIds.Comparison.FILTER).to_string(),
+                self.view_element(
+                    ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
+                )
+                .component_uuid(ElementIds.Comparison.FILTER)
+                .to_string(),
                 "children",
             ),
             Output(
-                self.view_element(ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE)
-                .component_uuid(ElementIds.Comparison.TABLE).to_string(),
+                self.view_element(
+                    ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
+                )
+                .component_uuid(ElementIds.Comparison.TABLE)
+                .to_string(),
                 "children",
             ),
-            Input(self.get_store_uuid(ElementIds.Stores.COMPARISON), "data"),
+            Input(self.get_store_uuid(f"{self.compare_on.lower()}_comparison"), "data"),
             Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_page_ens_comp(
             selections: dict,
             filters: dict,
         ) -> Tuple[str, str, str, Component]:
+            if selections is None:
+                raise PreventUpdate
+
             return self.comparison_callback(
                 compare_on="SENSNAME_CASE"
                 if self.compare_on == "Sensitivity"
@@ -127,20 +166,21 @@ class DiffTableSelectedResponse(ViewABC):
         if df.empty:
             return ("", "No data left after filtering", "", None)
 
-        filter_info="SOURCE" if compare_on != "SOURCE" else "ENSEMBLE"
+        filter_info = "SOURCE" if compare_on != "SOURCE" else "ENSEMBLE"
 
         return (
-            f"Table showing differences for {selections['Response']}", 
+            f"Table showing differences for {selections['Response']}",
             f"From {selections['value1'].replace('|', ':  ')} "
-            f"to {selections['value2'].replace('|', ':  ')}", 
-            f"{filter_info.capitalize()} {filters[filter_info][0]}", 
+            f"to {selections['value2'].replace('|', ':  ')}",
+            f"{filter_info.capitalize()} {filters[filter_info][0]}",
             create_comparison_table(
                 tabletype="single-response table",
                 df=df,
                 groupby=groupby,
                 selections=selections,
                 filters=filters,
-                use_si_format=selections["Response"] in self.volumes_model.volume_columns,
+                use_si_format=selections["Response"]
+                in self.volumes_model.volume_columns,
                 compare_on=compare_on,
-            )
+            ),
         )
