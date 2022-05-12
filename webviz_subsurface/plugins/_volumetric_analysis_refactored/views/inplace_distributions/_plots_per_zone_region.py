@@ -24,7 +24,7 @@ class Plot(ViewElementABC):
 
     def inner_layout(self) -> Component:
         return wcc.Graph(
-            id=self.register_component_uuid(
+            id=self.register_component_unique_id(
                 ElementIds.InplaceDistributions.PlotsPerZoneRegion.GRAPH
             ),
             config={"displayModeBar": False},
@@ -62,7 +62,7 @@ class InplaceDistributionsPlotsPerZoneRegion(ViewABC):
         @callback(
             Output(
                 self.plots[index][0]
-                .component_uuid(
+                .component_unique_id(
                     ElementIds.InplaceDistributions.PlotsPerZoneRegion.GRAPH
                 )
                 .to_string(),
@@ -70,22 +70,25 @@ class InplaceDistributionsPlotsPerZoneRegion(ViewABC):
             ),
             Output(
                 self.plots[index][1]
-                .component_uuid(
+                .component_unique_id(
                     ElementIds.InplaceDistributions.PlotsPerZoneRegion.GRAPH
                 )
                 .to_string(),
                 "figure",
             ),
             Output(
-                self.plots[index][0].get_uuid().to_string(),
+                self.plots[index][0].get_unique_id().to_string(),
                 "hidden",
             ),
             Output(
-                self.plots[index][1].get_uuid().to_string(),
+                self.plots[index][1].get_unique_id().to_string(),
                 "hidden",
             ),
-            Input(self.get_store_uuid(ElementIds.Stores.INPLACE_DISTRIBUTIONS), "data"),
-            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
+            Input(
+                self.get_store_unique_id(ElementIds.Stores.INPLACE_DISTRIBUTIONS),
+                "data",
+            ),
+            Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_plots(
             selections: dict,

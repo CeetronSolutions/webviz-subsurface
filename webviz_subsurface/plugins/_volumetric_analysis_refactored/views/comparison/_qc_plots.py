@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 import webviz_core_components as wcc
 from dash.development.base_component import Component
-from dash import Input, Output, callback, callback_context, html
+from dash import Input, Output, callback, html
 from dash.exceptions import PreventUpdate
 from webviz_config.webviz_plugin_subclasses._views import ViewABC, ViewElementABC
 from webviz_subsurface._figures import create_figure
@@ -28,7 +28,7 @@ class Plot(ViewElementABC):
 
     def inner_layout(self) -> Component:
         return wcc.Graph(
-            id=self.register_component_uuid(ElementIds.Comparison.GRAPH),
+            id=self.register_component_unique_id(ElementIds.Comparison.GRAPH),
             config={"displayModeBar": False},
             style={"height": "30vh"},
         )
@@ -65,48 +65,51 @@ class QCPlots(ViewABC):
         @callback(
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_REAL)
-                .component_uuid(ElementIds.Comparison.GRAPH)
+                .component_unique_id(ElementIds.Comparison.GRAPH)
                 .to_string(),
                 "figure",
             ),
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_REAL)
-                .get_uuid()
+                .get_unique_id()
                 .to_string(),
                 "hidden",
             ),
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_RESPONSE)
-                .component_uuid(ElementIds.Comparison.GRAPH)
+                .component_unique_id(ElementIds.Comparison.GRAPH)
                 .to_string(),
                 "figure",
             ),
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_RESPONSE)
-                .get_uuid()
+                .get_unique_id()
                 .to_string(),
                 "hidden",
             ),
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.PLOT_CORRELATION)
-                .component_uuid(ElementIds.Comparison.GRAPH)
+                .component_unique_id(ElementIds.Comparison.GRAPH)
                 .to_string(),
                 "figure",
             ),
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.PLOT_CORRELATION)
-                .get_uuid()
+                .get_unique_id()
                 .to_string(),
                 "hidden",
             ),
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.HIGHLIGHTED_DATA)
-                .get_uuid()
+                .get_unique_id()
                 .to_string(),
                 "children",
             ),
-            Input(self.get_store_uuid(f"{self.compare_on.lower()}_comparison"), "data"),
-            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
+            Input(
+                self.get_store_unique_id(f"{self.compare_on.lower()}_comparison"),
+                "data",
+            ),
+            Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_page_ens_comp(
             selections: dict,
@@ -261,6 +264,8 @@ class QCPlots(ViewABC):
             ),
         )
 
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-locals
     def create_comparison_df(
         self,
         volumemodel: InplaceVolumesModel,
@@ -384,8 +389,9 @@ class QCPlots(ViewABC):
                 )
         return fig
 
+    @staticmethod
     def find_diff_plot_range(
-        self, df: pd.DataFrame, diff_mode: str, selections: dict
+        df: pd.DataFrame, diff_mode: str, selections: dict
     ) -> list:
         """
         Find plot range for diff axis. If axis focus is selected
@@ -400,8 +406,9 @@ class QCPlots(ViewABC):
         extend = (high - low) * 0.1
         return [low - extend, high + extend]
 
+    @staticmethod
     def create_barfig(
-        self, df: pd.DataFrame, groupby: list, diff_mode: str, colorcol: str
+        df: pd.DataFrame, groupby: list, diff_mode: str, colorcol: str
     ) -> Union[None, go.Figure]:
         if df.empty:
             return None
@@ -427,15 +434,15 @@ class QCPlots(ViewABC):
             .update_yaxes(zeroline=True, zerolinecolor="black")
         )
 
-    def add_fluid_zone_column(
-        self, dframe: pd.DataFrame, filters: dict
-    ) -> pd.DataFrame:
+    @staticmethod
+    def add_fluid_zone_column(dframe: pd.DataFrame, filters: dict) -> pd.DataFrame:
         if "FLUID_ZONE" not in dframe and "FLUID_ZONE" in filters:
             dframe["FLUID_ZONE"] = (" + ").join(filters["FLUID_ZONE"])
         return dframe
 
+    @staticmethod
     def compute_highlighted_col(
-        self, df: pd.DataFrame, response: str, value1: str, selections: dict
+        df: pd.DataFrame, response: str, value1: str, selections: dict
     ) -> np.ndarray:
         highlight_mask = (df[response][value1] > selections["Ignore <"]) & (
             df[response]["diff (%)"].abs() > selections["Accept value"]

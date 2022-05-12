@@ -1,5 +1,5 @@
 from typing import List
-from webviz_config import WebvizConfigTheme
+
 from webviz_config.webviz_plugin_subclasses import (
     SettingsGroupABC,
 )
@@ -28,8 +28,8 @@ class Settings(SettingsGroupABC):
         return wcc.Dropdown(
             label="Scale:",
             id={
-                "plugin_id": self.get_uuid().get_plugin_id(),
-                "settings_id": self.get_uuid().to_string(),
+                "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                "settings_id": self.get_unique_id().to_string(),
                 "selector": "Scale",
             },
             options=[
@@ -47,8 +47,8 @@ class Settings(SettingsGroupABC):
             children=[
                 wcc.Checklist(
                     id={
-                        "plugin_id": self.get_uuid().get_plugin_id(),
-                        "settings_id": self.get_uuid().to_string(),
+                        "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                        "settings_id": self.get_unique_id().to_string(),
                         "selector": selector,
                     },
                     options=[{"label": label, "value": "selected"}],
@@ -71,8 +71,8 @@ class Settings(SettingsGroupABC):
                 wcc.RadioItems(
                     label="Label options:",
                     id={
-                        "plugin_id": self.get_uuid().get_plugin_id(),
-                        "settings_id": self.get_uuid().to_string(),
+                        "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                        "settings_id": self.get_unique_id().to_string(),
                         "selector": "labeloptions",
                     },
                     options=[
@@ -90,8 +90,8 @@ class Settings(SettingsGroupABC):
         return wcc.Dropdown(
             label="Reference:",
             id={
-                "plugin_id": self.get_uuid().get_plugin_id(),
-                "settings_id": self.get_uuid().to_string(),
+                "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                "settings_id": self.get_unique_id().to_string(),
                 "selector": "Reference",
             },
             options=[

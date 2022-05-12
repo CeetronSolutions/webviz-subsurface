@@ -1,8 +1,7 @@
 import math
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import plotly.graph_objects as go
-import webviz_core_components as wcc
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
@@ -43,7 +42,6 @@ def create_table_columns(
 
 def create_data_table(
     columns: list,
-    height: str,
     data: List[dict],
     table_id: dict,
     selectors: Optional[list] = None,
@@ -85,7 +83,6 @@ def create_data_table(
         style_cell_conditional=conditional_cell_style,
         style_data_conditional=style_data_conditional,
         style_table={
-            "height": height,
             "overflowY": "auto",
         },
     )
@@ -170,7 +167,6 @@ def make_tables(
     selections: dict,
     filters: dict,
     table_type: str,
-    view_height: float,
     groups: Optional[list] = None,
 ) -> List[Optional[dash_table.DataTable]]:
 
@@ -211,9 +207,6 @@ def make_tables(
                     data["Property"] = response
                     data_properties.append(data)
 
-        if data_volcols and data_properties:
-            view_height = view_height / 2
-
         return [
             create_data_table(
                 selectors=volumemodel.selectors,
@@ -225,7 +218,6 @@ def make_tables(
                     use_si_format=statcols if col == "Response" else None,
                 ),
                 data=data,
-                height=f"{view_height}vh",
                 table_id={"table_id": f"{col}"},
             )
             for col, data in zip(
@@ -258,7 +250,6 @@ def make_tables(
                 columns=dframe.columns, use_si_format=volumemodel.volume_columns
             ),
             data=dframe.iloc[::-1].to_dict("records"),
-            height=f"{view_height}vh",
             table_id={"table_id": "meantable"},
         )
     ]

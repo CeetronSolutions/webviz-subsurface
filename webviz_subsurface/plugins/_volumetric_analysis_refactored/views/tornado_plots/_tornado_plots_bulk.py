@@ -34,7 +34,9 @@ class Plots(ViewElementABC):
 
     def inner_layout(self) -> Component:
         return html.Div(
-            id=self.register_component_uuid(ElementIds.TornadoPlots.Custom.Plots.GRAPHS)
+            id=self.register_component_unique_id(
+                ElementIds.TornadoPlots.Custom.Plots.GRAPHS
+            )
         )
 
 
@@ -60,11 +62,11 @@ class TornadoPlotsBulk(ViewABC):
     def set_callbacks(self) -> None:
         @callback(
             Output(
-                self.get_uuid().to_string(),
+                self.get_unique_id().to_string(),
                 "children",
             ),
-            Input(self.get_store_uuid(ElementIds.Stores.TORNADO_PLOTS), "data"),
-            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
+            Input(self.get_store_unique_id(ElementIds.Stores.TORNADO_PLOTS), "data"),
+            Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_plots_and_tables(
             selections: dict,
@@ -137,7 +139,9 @@ class TornadoPlotsBulk(ViewABC):
                     selectors=[selections["Subplots"]] if subplots else [],
                     data=[x for table in tables for x in table],
                     height="39vh",
-                    table_id={"table_id": f"{self.get_uuid().to_string()}-torntable"},
+                    table_id={
+                        "table_id": f"{self.get_unique_id().to_string()}-torntable"
+                    },
                 )
             elif selections["bottom_viz"] == "realplot" and figures:
                 bottom_display = (
@@ -152,7 +156,7 @@ class TornadoPlotsBulk(ViewABC):
 
             return (
                 tornado_plots_layout(
-                    view_id=self.get_uuid().to_string(),
+                    view_id=self.get_unique_id().to_string(),
                     figures=figures,
                     bottom_display=bottom_display,
                 )

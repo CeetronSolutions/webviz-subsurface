@@ -1,8 +1,8 @@
 from typing import Any, List, Optional
-from webviz_config.webviz_plugin_subclasses import SettingsGroupABC, LayoutUuid
+from webviz_config.webviz_plugin_subclasses import SettingsGroupABC, LayoutUniqueId
 from dash.development.base_component import Component
 
-from dash import html, ALL, Input, Output, State, callback, callback_context, no_update
+from dash import html, ALL, Input, Output, State, callback, no_update
 from dash.exceptions import PreventUpdate
 import webviz_core_components as wcc
 
@@ -29,8 +29,8 @@ class TornadoControls(SettingsGroupABC):
             wcc.Dropdown(
                 label="Response",
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Response",
                 },
                 clearable=False,
@@ -44,8 +44,8 @@ class TornadoControls(SettingsGroupABC):
                 collapsible=True,
                 open_details=False,
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Sensitivities",
                 },
                 options=[
@@ -57,8 +57,8 @@ class TornadoControls(SettingsGroupABC):
             wcc.Dropdown(
                 label="Subplots",
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Subplots",
                 },
                 clearable=True,
@@ -77,8 +77,8 @@ class TornadoControls(SettingsGroupABC):
                 children=wcc.RadioItems(
                     label="Visualization below tornado:",
                     id={
-                        "plugin_id": self.get_uuid().get_plugin_id(),
-                        "settings_id": self.get_uuid().to_string(),
+                        "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                        "settings_id": self.get_unique_id().to_string(),
                         "selector": "bottom_viz",
                     },
                     options=[
@@ -96,24 +96,24 @@ class TornadoControls(SettingsGroupABC):
         @callback(
             Output(
                 {
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": ALL,
                 },
                 "options",
             ),
             Output(
                 {
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": ALL,
                 },
                 "value",
             ),
             Output(
                 {
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": ALL,
                 },
                 "disabled",
@@ -121,21 +121,21 @@ class TornadoControls(SettingsGroupABC):
             Input("webviz-content-manager", "activeViewId"),
             State(
                 {
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": ALL,
                 },
                 "id",
             ),
             State(
                 {
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": ALL,
                 },
                 "value",
             ),
-            State(self.get_store_uuid(ElementIds.Stores.TORNADO_PLOTS), "data"),
+            State(self.get_store_unique_id(ElementIds.Stores.TORNADO_PLOTS), "data"),
         )
         def _update_tornado_selections(
             active_view_id: str,
@@ -143,11 +143,12 @@ class TornadoControls(SettingsGroupABC):
             selector_values: list,
             previous_selection: Optional[dict],
         ) -> tuple:
-            custom_tornado_plots_uuid = LayoutUuid(
-                self.get_uuid().get_plugin_id(), ElementIds.TornadoPlots.Custom.ID
+            custom_tornado_plots_uuid = LayoutUniqueId(
+                self.get_unique_id().get_plugin_uuid(),
+                ElementIds.TornadoPlots.Custom.ID,
             )
-            bulk_tornado_plots_uuid = LayoutUuid(
-                self.get_uuid().get_plugin_id(),
+            bulk_tornado_plots_uuid = LayoutUniqueId(
+                self.get_unique_id().get_plugin_uuid(),
                 ElementIds.TornadoPlots.BulkVsStoiipGiip.ID,
             )
             if (
@@ -160,7 +161,6 @@ class TornadoControls(SettingsGroupABC):
             ):
                 raise PreventUpdate
 
-            ctx = callback_context.triggered[0]
             initial_page_load = active_view_id not in previous_selection
 
             selections: Any = (

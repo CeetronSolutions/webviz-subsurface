@@ -1,16 +1,13 @@
-from typing import List, Optional, Type
-from xml.dom.minidom import Element
+from typing import List
 from webviz_config.webviz_plugin_subclasses import (
     SettingsGroupABC,
 )
 from dash.development.base_component import Component
 
-from dash import ALL, Input, Output, State, callback, html
+from dash import html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
-
-from .._layout_elements import ElementIds
 
 
 class Filters(SettingsGroupABC):
@@ -77,7 +74,7 @@ class Filters(SettingsGroupABC):
     ) -> html.Div:
         return html.Div(
             id={
-                "id": self.get_uuid().to_string(),
+                "id": self.get_unique_id().to_string(),
                 "wrapper": selector,
                 "type": filter_type,
             },
@@ -85,7 +82,7 @@ class Filters(SettingsGroupABC):
             children=wcc.SelectWithLabel(
                 label=selector.lower().capitalize(),
                 id={
-                    "id": self.get_uuid().to_string(),
+                    "id": self.get_unique_id().to_string(),
                     "selector": selector,
                     "type": filter_type,
                 },
@@ -98,7 +95,7 @@ class Filters(SettingsGroupABC):
 
     def fipnum_vs_zone_region_switch(self) -> wcc.RadioItems:
         return wcc.RadioItems(
-            id={"id": self.get_uuid().to_string(), "element": "region-selector"},
+            id={"id": self.get_unique_id().to_string(), "element": "region-selector"},
             options=[
                 {"label": "Region∕Zone", "value": "regzone"},
                 {"label": "Fipnum", "value": "fipnum"},
@@ -120,14 +117,20 @@ class Filters(SettingsGroupABC):
                             style={"font-weight": "bold"},
                         ),
                         html.Span(
-                            id={"id": self.get_uuid().to_string(), "element": "real_text"},
+                            id={
+                                "id": self.get_unique_id().to_string(),
+                                "element": "real_text",
+                            },
                             style={"margin-left": "10px"},
                             children=f"{min(reals)}-{max(reals)}",
                         ),
                     ],
                 ),
                 wcc.RadioItems(
-                    id={"id": self.get_uuid().to_string(), "element": "real-selector-option"},
+                    id={
+                        "id": self.get_unique_id().to_string(),
+                        "element": "real-selector-option",
+                    },
                     options=[
                         {"label": "Range", "value": "range"},
                         {"label": "Select", "value": "select"},
@@ -136,9 +139,12 @@ class Filters(SettingsGroupABC):
                     vertical=False,
                 ),
                 wcc.RangeSlider(
-                    wrapper_id={"id": self.get_uuid().to_string(), "element": "real-slider-wrapper"},
+                    wrapper_id={
+                        "id": self.get_unique_id().to_string(),
+                        "element": "real-slider-wrapper",
+                    },
                     id={
-                        "id": self.get_uuid().to_string(),
+                        "id": self.get_unique_id().to_string(),
                         "component_type": "range",
                     },
                     value=[min(reals), max(reals)],
@@ -150,7 +156,7 @@ class Filters(SettingsGroupABC):
                     style={"display": "none"},
                     children=wcc.Select(
                         id={
-                            "id": self.get_uuid().to_string(),
+                            "id": self.get_unique_id().to_string(),
                             "selector": "REAL",
                             "type": "REAL",
                         },

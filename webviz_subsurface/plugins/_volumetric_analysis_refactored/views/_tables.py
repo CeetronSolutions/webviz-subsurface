@@ -6,7 +6,7 @@ from webviz_config.webviz_plugin_subclasses import (
 )
 from dash.development.base_component import Component
 
-from dash import ALL, Input, Output, State, callback
+from dash import Input, Output, callback
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
@@ -30,8 +30,8 @@ class TableControls(SettingsGroupABC):
             wcc.Dropdown(
                 label="Table type",
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Table type",
                 },
                 options=[
@@ -44,8 +44,8 @@ class TableControls(SettingsGroupABC):
             wcc.Dropdown(
                 label="Group by",
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Group by",
                 },
                 options=[
@@ -58,8 +58,8 @@ class TableControls(SettingsGroupABC):
             wcc.SelectWithLabel(
                 label="Responses",
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "table_responses",
                 },
                 options=[{"label": i, "value": i} for i in responses],
@@ -103,12 +103,12 @@ class Tables(ViewABC):
 
     def set_callbacks(self) -> None:
         @callback(
-            Output(self.response_table.get_uuid().to_string(), "children"),
-            Output(self.response_table.get_uuid().to_string(), "hidden"),
-            Output(self.property_table.get_uuid().to_string(), "children"),
-            Output(self.property_table.get_uuid().to_string(), "hidden"),
-            Input(self.get_store_uuid(ElementIds.Stores.TABLES), "data"),
-            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
+            Output(self.response_table.get_unique_id().to_string(), "children"),
+            Output(self.response_table.get_unique_id().to_string(), "hidden"),
+            Output(self.property_table.get_unique_id().to_string(), "children"),
+            Output(self.property_table.get_unique_id().to_string(), "hidden"),
+            Input(self.get_store_unique_id(ElementIds.Stores.TABLES), "data"),
+            Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_table(
             selections: dict, filters: dict

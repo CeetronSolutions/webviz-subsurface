@@ -26,8 +26,8 @@ class Settings(SettingsGroupABC):
             children=wcc.RadioItems(
                 label="Color plots on",
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Color by",
                 },
                 options=[
@@ -42,8 +42,8 @@ class Settings(SettingsGroupABC):
     def axis_focus_selector(self) -> html.Div:
         return wcc.Checklist(
             id={
-                "plugin_id": self.get_uuid().get_plugin_id(),
-                "settings_id": self.get_uuid().to_string(),
+                "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                "settings_id": self.get_unique_id().to_string(),
                 "selector": "Axis focus",
             },
             options=[{"label": "Focus diff plots on highlighted", "value": "focus"}],
@@ -53,8 +53,8 @@ class Settings(SettingsGroupABC):
     def remove_zero_responses(self) -> html.Div:
         return wcc.Checklist(
             id={
-                "plugin_id": self.get_uuid().get_plugin_id(),
-                "settings_id": self.get_uuid().to_string(),
+                "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                "settings_id": self.get_unique_id().to_string(),
                 "selector": "Remove zeros",
             },
             options=[{"label": "Remove data with no volume", "value": "remove"}],
@@ -64,8 +64,8 @@ class Settings(SettingsGroupABC):
     def remove_non_highlighted_data(self) -> html.Div:
         return wcc.Checklist(
             id={
-                "plugin_id": self.get_uuid().get_plugin_id(),
-                "settings_id": self.get_uuid().to_string(),
+                "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                "settings_id": self.get_unique_id().to_string(),
                 "selector": "Remove non-highlighted",
             },
             options=[

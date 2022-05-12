@@ -25,7 +25,7 @@ class Plot(ViewElementABC):
 
     def inner_layout(self) -> Component:
         return wcc.Graph(
-            id=self.register_component_uuid(
+            id=self.register_component_unique_id(
                 ElementIds.InplaceDistributions.ConvergencePlot.Plot.GRAPH
             ),
             config={"displayModeBar": False},
@@ -49,13 +49,16 @@ class InplaceDistributionsConvergencePlot(ViewABC):
     def set_callbacks(self) -> None:
         @callback(
             Output(
-                self.plot.component_uuid(
+                self.plot.component_unique_id(
                     ElementIds.InplaceDistributions.ConvergencePlot.Plot.GRAPH
                 ).to_string(),
                 "figure",
             ),
-            Input(self.get_store_uuid(ElementIds.Stores.INPLACE_DISTRIBUTIONS), "data"),
-            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
+            Input(
+                self.get_store_unique_id(ElementIds.Stores.INPLACE_DISTRIBUTIONS),
+                "data",
+            ),
+            Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_plot_and_tables(
             selections: dict,

@@ -21,8 +21,8 @@ class Controls(SettingsGroupABC):
         return [
             wcc.Dropdown(
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "value1",
                 },
                 label=f"{self.compare_on} A",
@@ -33,8 +33,8 @@ class Controls(SettingsGroupABC):
             ),
             wcc.Dropdown(
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "value2",
                 },
                 optionHeight=50,
@@ -46,8 +46,8 @@ class Controls(SettingsGroupABC):
             dcc.Input(
                 style={"display": "none"},
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "compare_on",
                 },
                 value=self.compare_on,
@@ -72,8 +72,8 @@ class Controls(SettingsGroupABC):
             children=wcc.RadioItems(
                 label="Difference mode",
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Diff mode",
                 },
                 options=[
@@ -97,8 +97,8 @@ class Controls(SettingsGroupABC):
                         wcc.Label("Absolute diff (%) above:"),
                         dcc.Input(
                             id={
-                                "plugin_id": self.get_uuid().get_plugin_id(),
-                                "settings_id": self.get_uuid().to_string(),
+                                "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                                "settings_id": self.get_unique_id().to_string(),
                                 "selector": "Accept value",
                             },
                             type="number",
@@ -114,8 +114,8 @@ class Controls(SettingsGroupABC):
                         wcc.Label("Ignore response values below:"),
                         dcc.Input(
                             id={
-                                "plugin_id": self.get_uuid().get_plugin_id(),
-                                "settings_id": self.get_uuid().to_string(),
+                                "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                                "settings_id": self.get_unique_id().to_string(),
                                 "selector": "Ignore <",
                             },
                             type="number",
@@ -156,8 +156,8 @@ class Controls(SettingsGroupABC):
             style={"margin-top": "10px"},
             children=wcc.Dropdown(
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Response",
                 },
                 label="Response",
@@ -182,8 +182,8 @@ class Controls(SettingsGroupABC):
             children=wcc.Dropdown(
                 label="Investigate differences on level",
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Group by",
                 },
                 options=[{"label": elm, "value": elm} for elm in available_selectors],

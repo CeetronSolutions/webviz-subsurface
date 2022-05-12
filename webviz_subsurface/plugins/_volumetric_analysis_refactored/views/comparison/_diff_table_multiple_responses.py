@@ -1,9 +1,8 @@
-from typing import Optional, Tuple, Union
+from typing import Tuple
 
-import pandas as pd
 from webviz_config.webviz_plugin_subclasses._views import ViewABC, ViewElementABC
 
-from dash import dash_table, Input, Output, callback, callback_context, html
+from dash import Input, Output, callback, html
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 import webviz_core_components as wcc
@@ -12,7 +11,6 @@ from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
 from ..._layout_elements import ElementIds
 from .utils import (
     create_comparison_df,
-    find_higlighted_real_count,
     create_comparison_table,
 )
 
@@ -27,24 +25,26 @@ class DataTable(ViewElementABC):
         return html.Div(
             [
                 wcc.Header(
-                    id=self.register_component_uuid(ElementIds.Comparison.HEADER)
+                    id=self.register_component_unique_id(ElementIds.Comparison.HEADER)
                 ),
                 html.Div(
                     style={"margin-bottom": "30px", "font-weight": "bold"},
                     children=[
                         html.Div(
-                            id=self.register_component_uuid(
+                            id=self.register_component_unique_id(
                                 ElementIds.Comparison.SELECTION
                             )
                         ),
                         html.Div(
-                            id=self.register_component_uuid(
+                            id=self.register_component_unique_id(
                                 ElementIds.Comparison.FILTER
                             )
                         ),
                     ],
                 ),
-                html.Div(id=self.register_component_uuid(ElementIds.Comparison.TABLE)),
+                html.Div(
+                    id=self.register_component_unique_id(ElementIds.Comparison.TABLE)
+                ),
             ]
         )
 
@@ -65,7 +65,7 @@ class DiffTableMultipleResponses(ViewABC):
                 self.view_element(
                     ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
                 )
-                .component_uuid(ElementIds.Comparison.HEADER)
+                .component_unique_id(ElementIds.Comparison.HEADER)
                 .to_string(),
                 "children",
             ),
@@ -73,7 +73,7 @@ class DiffTableMultipleResponses(ViewABC):
                 self.view_element(
                     ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
                 )
-                .component_uuid(ElementIds.Comparison.SELECTION)
+                .component_unique_id(ElementIds.Comparison.SELECTION)
                 .to_string(),
                 "children",
             ),
@@ -81,7 +81,7 @@ class DiffTableMultipleResponses(ViewABC):
                 self.view_element(
                     ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
                 )
-                .component_uuid(ElementIds.Comparison.FILTER)
+                .component_unique_id(ElementIds.Comparison.FILTER)
                 .to_string(),
                 "children",
             ),
@@ -89,12 +89,15 @@ class DiffTableMultipleResponses(ViewABC):
                 self.view_element(
                     ElementIds.Comparison.DiffTableSelectedResponse.VIEW_TABLE
                 )
-                .component_uuid(ElementIds.Comparison.TABLE)
+                .component_unique_id(ElementIds.Comparison.TABLE)
                 .to_string(),
                 "children",
             ),
-            Input(self.get_store_uuid(f"{self.compare_on.lower()}_comparison"), "data"),
-            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
+            Input(
+                self.get_store_unique_id(f"{self.compare_on.lower()}_comparison"),
+                "data",
+            ),
+            Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_page_ens_comp(
             selections: dict,
@@ -125,7 +128,7 @@ class DiffTableMultipleResponses(ViewABC):
             selections[key] = selections[key] if selections[key] is not None else 0
 
         groupby = selections["Group by"] if selections["Group by"] is not None else []
-        group_on_fluid = "FLUID_ZONE" in groupby
+
         # for hc responses and bo/bg the data should be grouped
         # on fluid zone to avoid misinterpretations
         if (

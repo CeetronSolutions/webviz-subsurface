@@ -47,8 +47,8 @@ class PlotControls(SettingsGroupABC):
                 wcc.Dropdown(
                     label=selector,
                     id={
-                        "plugin_id": self.get_uuid().get_plugin_id(),
-                        "settings_id": self.get_uuid().to_string(),
+                        "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                        "settings_id": self.get_unique_id().to_string(),
                         "selector": selector,
                     },
                     options=[{"label": elm, "value": elm} for elm in elements],

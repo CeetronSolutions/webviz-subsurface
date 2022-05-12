@@ -28,8 +28,8 @@ class Settings(SettingsGroupABC):
             html.Span("Colors", style={"font-weight": "bold"}),
             wcc.ColorScales(
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Colorscale",
                 },
                 colorscale=theme_colors,
@@ -50,8 +50,8 @@ class Settings(SettingsGroupABC):
             },
             children=wcc.Checklist(
                 id={
-                    "plugin_id": self.get_uuid().get_plugin_id(),
-                    "settings_id": self.get_uuid().to_string(),
+                    "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                    "settings_id": self.get_unique_id().to_string(),
                     "selector": "Fluid annotation",
                 },
                 options=[{"label": "Show fluid annotation", "value": "Show"}],
@@ -66,8 +66,8 @@ class Settings(SettingsGroupABC):
                 html.Div(
                     children=wcc.Checklist(
                         id={
-                            "plugin_id": self.get_uuid().get_plugin_id(),
-                            "settings_id": self.get_uuid().to_string(),
+                            "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                            "settings_id": self.get_unique_id().to_string(),
                             "selector": f"{axis} matches",
                         },
                         options=[{"label": f"Equal {axis} range", "value": "Equal"}],
@@ -88,8 +88,8 @@ class Settings(SettingsGroupABC):
                 wcc.RadioItems(
                     label="Barmode:",
                     id={
-                        "plugin_id": self.get_uuid().get_plugin_id(),
-                        "settings_id": self.get_uuid().to_string(),
+                        "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                        "settings_id": self.get_unique_id().to_string(),
                         "selector": "barmode",
                     },
                     options=[
@@ -103,8 +103,8 @@ class Settings(SettingsGroupABC):
                 wcc.Slider(
                     label="Histogram bins:",
                     id={
-                        "plugin_id": self.get_uuid().get_plugin_id(),
-                        "settings_id": self.get_uuid().to_string(),
+                        "plugin_id": self.get_unique_id().get_plugin_uuid(),
+                        "settings_id": self.get_unique_id().to_string(),
                         "selector": "hist_bins",
                     },
                     value=15,

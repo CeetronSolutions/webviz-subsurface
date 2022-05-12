@@ -1,5 +1,4 @@
 from typing import Tuple
-from webviz_config import WebvizConfigTheme
 from webviz_config.webviz_plugin_subclasses import (
     ViewABC,
     ViewElementABC,
@@ -7,7 +6,7 @@ from webviz_config.webviz_plugin_subclasses import (
 from dash.development.base_component import Component
 from dash.exceptions import PreventUpdate
 
-from dash import ALL, Input, Output, callback, html
+from dash import Input, Output, callback, html
 import webviz_core_components as wcc
 
 from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
@@ -27,7 +26,7 @@ class Plot(ViewElementABC):
 
     def inner_layout(self) -> Component:
         return wcc.Graph(
-            id=self.register_component_uuid(
+            id=self.register_component_unique_id(
                 ElementIds.InplaceDistributions.CustomPlotting.Plot.GRAPH
             ),
             config={"displayModeBar": False},
@@ -42,7 +41,12 @@ class DataTable(ViewElementABC):
         super().__init__()
 
     def inner_layout(self) -> Component:
-        return []
+        return html.Div(
+            id=self.register_component_unique_id(
+                ElementIds.InplaceDistributions.CustomPlotting.PropertyTable.TABLE
+            ),
+            children=[],
+        )
 
 
 class InplaceDistributionsCustomPlotting(ViewABC):
@@ -73,28 +77,51 @@ class InplaceDistributionsCustomPlotting(ViewABC):
     def set_callbacks(self) -> None:
         @callback(
             Output(
-                self.plot.component_uuid(
+                self.plot.component_unique_id(
                     ElementIds.InplaceDistributions.CustomPlotting.Plot.GRAPH
                 ).to_string(),
                 "figure",
             ),
             Output(
-                self.plot.component_uuid(
+                self.plot.component_unique_id(
                     ElementIds.InplaceDistributions.CustomPlotting.Plot.GRAPH
                 ).to_string(),
                 "style",
             ),
-            Output(self.response_table.get_uuid().to_string(), "children"),
-            Output(self.response_table.get_uuid().to_string(), "hidden"),
-            Output(self.property_table.get_uuid().to_string(), "children"),
-            Output(self.property_table.get_uuid().to_string(), "hidden"),
-            Input(self.get_store_uuid(ElementIds.Stores.INPLACE_DISTRIBUTIONS), "data"),
-            Input(self.get_store_uuid(ElementIds.Stores.FILTERS), "data"),
+            Output(
+                self.plot.get_unique_id().to_string(),
+                "hidden",
+            ),
+            Output(
+                self.response_table.component_unique_id(
+                    ElementIds.InplaceDistributions.CustomPlotting.ResponseTable.TABLE
+                ).to_string(),
+                "children",
+            ),
+            Output(
+                self.response_table.get_unique_id().to_string(),
+                "hidden",
+            ),
+            Output(
+                self.property_table.component_unique_id(
+                    ElementIds.InplaceDistributions.CustomPlotting.PropertyTable.TABLE
+                ).to_string(),
+                "children",
+            ),
+            Output(
+                self.property_table.get_unique_id().to_string(),
+                "hidden",
+            ),
+            Input(
+                self.get_store_unique_id(ElementIds.Stores.INPLACE_DISTRIBUTIONS),
+                "data",
+            ),
+            Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_plot_and_tables(
             selections: dict,
             filters: dict,
-        ) -> Tuple[dict, dict, Component, bool, Component, bool]:
+        ) -> Tuple[dict, dict, bool, Component, bool, Component, bool]:
             if selections is None:
                 raise PreventUpdate
 
@@ -117,20 +144,34 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                 and "FLUID_ZONE" not in groups
             ):
                 if "BO" in selected_data and "BG" in selected_data:
-                    return html.Div(
-                        "Can't plot BO against BG", style={"margin-top": "40px"}
+                    return (
+                        {},
+                        {},
+                        True,
+                        html.Div(
+                            "Can't plot BO against BG", style={"margin-top": "40px"}
+                        ),
+                        False,
+                        None,
+                        True,
                     )
-                selections["filters"]["FLUID_ZONE"] = [
-                    "oil" if "BO" in selected_data else "gas"
-                ]
+                filters["FLUID_ZONE"] = ["oil" if "BO" in selected_data else "gas"]
 
             dframe = self.volumes_model.get_df(
                 filters=filters, groups=groups, parameters=parameters
             )
 
             if dframe.empty:
-                return html.Div(
-                    "No data left after filtering", style={"margin-top": "40px"}
+                return (
+                    {},
+                    {},
+                    True,
+                    html.Div(
+                        "No data left after filtering", style={"margin-top": "40px"}
+                    ),
+                    False,
+                    None,
+                    True,
                 )
 
             df_for_figure = (
@@ -196,7 +237,6 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                 selections=selections,
                 filters=filters,
                 table_type="Statistics table",
-                view_height=37,
             )
 
             response_table_hidden = True
@@ -212,6 +252,7 @@ class InplaceDistributionsCustomPlotting(ViewABC):
                 {"height": "86vh"}
                 if response_table_hidden and property_table_hidden
                 else {"height": "45vh"},
+                False,
                 tables[0] if tables[0] is not None else [],
                 response_table_hidden,
                 tables[1] if tables[1] is not None else [],
