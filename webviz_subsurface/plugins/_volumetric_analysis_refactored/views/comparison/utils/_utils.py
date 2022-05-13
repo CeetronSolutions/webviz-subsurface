@@ -163,7 +163,6 @@ def create_comparison_table(
     return create_data_table(
         selectors=groupby,
         columns=columns,
-        height="80vh",
         data=df.to_dict("records"),
         table_id={"table_id": f"{compare_on}-comp-table"},
         style_cell={"textAlign": "center"},

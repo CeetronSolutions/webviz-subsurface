@@ -128,7 +128,6 @@ class Tables(ViewABC):
                 dframe=dframe,
                 responses=selections["table_responses"],
                 groups=selections["Group by"],
-                view_height=85,
                 table_type=selections["Table type"],
                 volumemodel=self.volumes_model,
                 selections=selections,

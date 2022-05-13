@@ -32,13 +32,16 @@ from .views import (
     Tables,
     TornadoPlotsCustom,
     TornadoPlotsBulk,
-    FipFile,
 )
 
 from .views.comparison import (
     DiffTableMultipleResponses,
     DiffTableSelectedResponse,
     QCPlots,
+)
+
+from .views.fip_file import (
+    FipFileQCPlots
 )
 
 from .views.comparison.shared_settings import Controls, Settings as ComparisonSettings
@@ -145,7 +148,7 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
         )
 
         self.add_shared_settings_group(
-            Filters(self.volumes_model),
+            Filters(self.volumes_model, self.disjoint_set_df),
             ElementIds.SharedSettings.Filters.ID,
         )
 
@@ -465,8 +468,8 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     ],
                 )
 
-        if self.disjoint_set_df:
-            self.add_view(FipFile(), ElementIds.FipQC.ID)
+        if self.disjoint_set_df is not None:
+            self.add_view(FipFileQCPlots(self.disjoint_set_df), ElementIds.FipFile.QCPlots.ID, ElementIds.FipFile.NAME)
 
     def _set_callbacks(self) -> None:
         set_plugin_callbacks(self, self.volumes_model)

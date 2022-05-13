@@ -112,8 +112,15 @@ class ElementIds:
             class Settings:
                 ID = "settings"
 
-    class FipQC:
-        ID = "fipqc"
+    class FipFile:
+        NAME = "Fipfile QC"
+
+        class QCPlots:
+            ID = "fip_file_qc_plots"
+            ZONE_REGION_HEATMAP = "zone_region_heatmap"
+            ZONE_FIPNUM_HEATMAP = "zone_fipnum_heatmap"
+            REGION_FIPNUM_HEATMAP = "region_fipnum_heatmap"
+
 
     class TornadoPlots:
         NAME = "Tornadoplots"

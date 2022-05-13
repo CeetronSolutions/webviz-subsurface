@@ -30,7 +30,6 @@ class Plot(ViewElementABC):
                 ElementIds.InplaceDistributions.CustomPlotting.Plot.GRAPH
             ),
             config={"displayModeBar": False},
-            style={"height": "86vh"},
         )
 
 
@@ -59,7 +58,8 @@ class InplaceDistributionsCustomPlotting(ViewABC):
 
         self.plot = Plot()
         column.add_view_element(
-            self.plot, ElementIds.InplaceDistributions.CustomPlotting.Plot.ID
+            self.plot, ElementIds.InplaceDistributions.CustomPlotting.Plot.ID,
+            flex_grow = 2
         )
 
         self.response_table = DataTable()

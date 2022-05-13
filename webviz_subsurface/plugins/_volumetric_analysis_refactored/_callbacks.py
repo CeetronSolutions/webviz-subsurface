@@ -703,6 +703,55 @@ def set_plugin_callbacks(
                 .get_unique_id()
                 .to_string(),
                 "selector": ALL,
+                "type": "fipqc",
+            },
+            "style"
+        ),
+        Input("webviz-content-manager", "activeViewId"),
+        State(
+            {
+                "id": plugin.shared_settings_group(ElementIds.SharedSettings.Filters.ID)
+                .get_unique_id()
+                .to_string(),
+                "selector": ALL,
+                "type": "fipqc",
+            },
+            "id"
+        )
+    )
+    def _update_filter_visibility(
+        active_view_id: str,
+        filter_ids: list
+    ) -> list:
+        fip_file_views = list(
+            map(
+                lambda x: x[1].get_unique_id().to_string(),
+                plugin.views(ElementIds.FipFile.NAME),
+            )
+        )
+
+        output = {}
+        for selector in ["FIPNUM", "SET"]:
+            output[selector] = { "display": "" if active_view_id in fip_file_views else "none" }
+
+        return update_relevant_components(
+                id_list=filter_ids,
+                update_info=[
+                    {
+                        "new_value": values.get("multi", no_update),
+                        "conditions": {"selector": selector},
+                    }
+                    for selector, values in output.items()
+                ],
+            )
+
+    @callback(
+        Output(
+            {
+                "id": plugin.shared_settings_group(ElementIds.SharedSettings.Filters.ID)
+                .get_unique_id()
+                .to_string(),
+                "selector": ALL,
                 "type": "undef",
             },
             "multi",
@@ -892,12 +941,12 @@ def set_plugin_callbacks(
                 .to_string()
             )
 
-        page_selections = {
+        selections = {
             id_value["selector"]: values
             for id_value, values in zip(selector_ids, selectors)
             if id_value["settings_id"] in active_settings_ids
         }
-        page_filter_settings = {
+        filter_settings = {
             id_value["selector"]: {"options": options, "multi": multi}
             for id_value, options, multi in zip(
                 filter_ids, filter_options, filter_multi
@@ -908,16 +957,17 @@ def set_plugin_callbacks(
 
         if active_view_id in distribution_view_ids:
             selected_data = [
-                page_selections[x]
+                selections[x]
                 for x in ["Color by", "Subplots", "X Response", "Y Response"]
             ]
         if (
             active_view_id == plugin.unverified_view_uuid(ElementIds.Tables.ID)
-            and page_selections["Group by"] is not None
+            and selections["Group by"] is not None
         ):
-            selected_data = page_selections["Group by"]
+            selected_data = selections["Group by"]
+
         if active_view_id in tornado_view_ids:
-            selected_data = ["SENSNAME_CASE", page_selections["Subplots"]]
+            selected_data = ["SENSNAME_CASE", selections["Subplots"]]
         if active_view_id in list(
             map(
                 lambda x: x[1].get_unique_id().to_string(),
@@ -939,11 +989,11 @@ def set_plugin_callbacks(
 
         output = {}
         for selector in ["SOURCE", "ENSEMBLE", "SENSNAME_CASE"]:
-            if selector not in page_filter_settings:
+            if selector not in filter_settings:
                 continue
-            options = [x["value"] for x in page_filter_settings[selector]["options"]]
+            options = [x["value"] for x in filter_settings[selector]["options"]]
             multi = selector in selected_data
-            selector_is_multi = page_filter_settings[selector]["multi"]
+            selector_is_multi = filter_settings[selector]["multi"]
             if not multi and selector_is_multi:
                 values = [
                     "rms_seed"
@@ -962,7 +1012,7 @@ def set_plugin_callbacks(
             ElementIds.TornadoPlots.BulkVsStoiipGiip.ID
         ):
             output["FLUID_ZONE"] = {
-                "values": ["oil" if page_selections["Response"] == "STOIIP" else "gas"]
+                "values": ["oil" if selections["Response"] == "STOIIP" else "gas"]
             }
 
         return (
@@ -1123,7 +1173,7 @@ def set_plugin_callbacks(
         real_filter_id: list,
     ) -> tuple:
         """Callback that updates the selected relization info and text"""
-        if active_view_id == plugin.unverified_view_uuid(ElementIds.FipQC.ID):
+        if active_view_id == plugin.unverified_view_uuid(ElementIds.FipFile.QCPlots.ID):
             raise PreventUpdate
 
         real_list = [int(real) for real in reals[0]]
@@ -1174,10 +1224,10 @@ def set_plugin_callbacks(
         filters: dict,
         active_view_id: str,
     ) -> Component:
-        if active_view_id == plugin.unverified_view_uuid(ElementIds.FipQC.ID):
+        if active_view_id == plugin.unverified_view_uuid(ElementIds.FipFile.QCPlots.ID):
             raise PreventUpdate
 
-        reals = plugin.volumes_model.realizations
+        reals = volumes_model.realizations
         prev_selection = filters.get("REAL", []) if filters is not None else None
         selected_component = input_selector
         selected_reals = prev_selection if prev_selection is not None else reals
@@ -1293,7 +1343,7 @@ def set_plugin_callbacks(
             value for id_value, value in zip(reg_select_ids, selected_reg_filter)
         ]
 
-        df = plugin.volumes_model.dataframe
+        df = volumes_model.dataframe
 
         values = {}
         if selected[0] != "fipnum":
@@ -1337,7 +1387,7 @@ def set_plugin_callbacks(
             ),
         )
 
-    if len(plugin.volumes_model.sources) > 1:
+    if len(volumes_model.sources) > 1:
 
         @callback(
             Output(
@@ -1371,8 +1421,8 @@ def set_plugin_callbacks(
             """reset ignore value when new response is selected"""
             return 0
 
-    if len(plugin.volumes_model.ensembles) > 1 or plugin.volumes_model.sensrun:
-        if len(plugin.volumes_model.ensembles) > 1:
+    if len(volumes_model.ensembles) > 1 or volumes_model.sensrun:
+        if len(volumes_model.ensembles) > 1:
 
             @callback(
                 Output(

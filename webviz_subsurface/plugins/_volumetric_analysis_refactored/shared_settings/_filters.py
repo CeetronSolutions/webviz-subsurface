@@ -1,4 +1,7 @@
-from typing import List
+from typing import List, Optional
+
+import pandas as pd
+
 from webviz_config.webviz_plugin_subclasses import (
     SettingsGroupABC,
 )
@@ -11,15 +14,17 @@ from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
 
 
 class Filters(SettingsGroupABC):
-    def __init__(self, volumes_model: InplaceVolumesModel) -> None:
+    def __init__(self, volumes_model: InplaceVolumesModel, disjoint_set_df: Optional[pd.DataFrame]) -> None:
         super().__init__("Filters")
         self.volumes_model = volumes_model
+        self.disjoint_set_df = disjoint_set_df
         self.selectors = ["ZONE", "REGION", "FACIES", "FIPNUM", "SET"]
 
     def layout(self) -> List[Component]:
         return [
             self.filter_dropdowns(),
             self.realization_filters(),
+            self.fip_filter_dropdowns(),
         ]
 
     def filter_dropdowns(
@@ -166,3 +171,24 @@ class Filters(SettingsGroupABC):
                 ),
             ],
         )
+
+    def fip_filter_dropdowns(self) -> List[html.Div]:
+        dropdowns: List[html.Div] = []
+        if self.disjoint_set_df is not None:
+            for selector in ["FIPNUM", "SET"]:
+                elements = list(self.disjoint_set_df[selector].unique())
+                if selector == "FIPNUM":
+                    elements = sorted(elements, key=int)
+                dropdowns.append(
+                    html.Div(
+                        children=wcc.SelectWithLabel(
+                            label=selector.lower().capitalize(),
+                            id={"id": self.get_unique_id().to_string(), "selector": selector, "type": "fipqc"},
+                            options=[{"label": i, "value": i} for i in elements],
+                            value=elements,
+                            multi=True,
+                            size=min(15, len(elements)),
+                        ),
+                    )
+                )
+        return dropdowns

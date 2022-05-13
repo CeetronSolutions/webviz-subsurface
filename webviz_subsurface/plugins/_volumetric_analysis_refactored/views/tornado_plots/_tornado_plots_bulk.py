@@ -138,7 +138,6 @@ class TornadoPlotsBulk(ViewABC):
                     columns=columns,
                     selectors=[selections["Subplots"]] if subplots else [],
                     data=[x for table in tables for x in table],
-                    height="39vh",
                     table_id={
                         "table_id": f"{self.get_unique_id().to_string()}-torntable"
                     },
