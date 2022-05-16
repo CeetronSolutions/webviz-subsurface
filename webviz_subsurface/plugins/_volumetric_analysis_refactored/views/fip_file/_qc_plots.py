@@ -61,6 +61,8 @@ class FipFileQCPlots(ViewABC):
             ) -> Tuple[wcc.Graph, wcc.Graph, wcc.Graph]:
                 ctx = callback_context.triggered[0]
 
+                filters = { key: filters[key] for key in filters if key in ["REGION", "ZONE", "FIPNUM", "SET"]}
+
                 df = self.disjoint_set_df[["SET", "FIPNUM", "REGION", "ZONE", "REGZONE"]]
 
                 for filt, values in filters.items():

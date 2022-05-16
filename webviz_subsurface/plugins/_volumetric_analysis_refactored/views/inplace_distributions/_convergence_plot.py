@@ -67,6 +67,8 @@ class InplaceDistributionsConvergencePlot(ViewABC):
             if selections is None:
                 raise PreventUpdate
 
+            filters = { key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"] }
+
             subplots = (
                 selections["Subplots"] if selections["Subplots"] is not None else []
             )

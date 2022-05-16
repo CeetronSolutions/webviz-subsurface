@@ -125,6 +125,8 @@ class InplaceDistributionsCustomPlotting(ViewABC):
             if selections is None:
                 raise PreventUpdate
 
+            filters = { key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"] }
+
             selected_data = [
                 selections[x]
                 for x in ["Subplots", "Color by", "X Response", "Y Response"]

@@ -127,6 +127,8 @@ class DiffTableMultipleResponses(ViewABC):
         for key in ["Accept value", "Ignore <"]:
             selections[key] = selections[key] if selections[key] is not None else 0
 
+        filters = { key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"] }
+
         groupby = selections["Group by"] if selections["Group by"] is not None else []
 
         # for hc responses and bo/bg the data should be grouped

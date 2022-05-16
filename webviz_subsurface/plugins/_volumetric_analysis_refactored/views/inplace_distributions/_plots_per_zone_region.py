@@ -97,6 +97,8 @@ class InplaceDistributionsPlotsPerZoneRegion(ViewABC):
             if selections is None:
                 raise PreventUpdate
 
+            filters = { key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"] }
+
             return self.make_figures(selector, selections, filters)
 
     def set_callbacks(self) -> None:

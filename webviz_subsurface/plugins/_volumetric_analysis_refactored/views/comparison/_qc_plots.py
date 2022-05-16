@@ -52,7 +52,7 @@ class QCPlots(ViewABC):
 
         column = self.add_column()
         column.add_view_element(Plot(), ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_REAL)
-        row = column.make_row()
+        row = column.make_row(row_id=ElementIds.Comparison.QCPlots.ROW)
         row.add_view_element(
             Plot(), ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_RESPONSE
         )
@@ -83,6 +83,12 @@ class QCPlots(ViewABC):
             ),
             Output(
                 self.view_element(ElementIds.Comparison.QCPlots.PLOT_DIFF_VS_RESPONSE)
+                .component_unique_id(ElementIds.Comparison.GRAPH)
+                .to_string(),
+                "hidden",
+            ),
+            Output(
+                self.layout_element(ElementIds.Comparison.QCPlots.ROW)
                 .get_unique_id()
                 .to_string(),
                 "hidden",
@@ -114,7 +120,7 @@ class QCPlots(ViewABC):
         def _update_page_ens_comp(
             selections: dict,
             filters: dict,
-        ) -> Tuple[dict, bool, dict, bool, dict, bool, html.Div]:
+        ) -> Tuple[dict, bool, dict, bool, bool, dict, bool, html.Div]:
             if selections is None:
                 raise PreventUpdate
 
@@ -131,17 +137,20 @@ class QCPlots(ViewABC):
         compare_on: str,
         selections: dict,
         filters: dict,
-    ) -> Tuple[dict, bool, dict, bool, dict, bool, html.Div]:
+    ) -> Tuple[dict, bool, dict, bool, bool, dict, bool, html.Div]:
         if selections["value1"] == selections["value2"]:
             return (
                 {},
                 True,
                 {},
                 True,
+                True,
                 {},
                 True,
                 html.Div("Comparison between equal data"),
             )
+
+        filters = { key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"] }
 
         # Handle None in highlight criteria input
         for key in ["Accept value", "Ignore <"]:
@@ -192,6 +201,7 @@ class QCPlots(ViewABC):
                 {},
                 True,
                 {},
+                True,
                 True,
                 {},
                 True,
@@ -248,6 +258,7 @@ class QCPlots(ViewABC):
             scatter_diff_vs_real is None,
             scatter_diff_vs_response if scatter_diff_vs_response is not None else {},
             scatter_diff_vs_response is None,
+            scatter_diff_vs_real is None and scatter_diff_vs_response is None,
             scatter_corr if scatter_corr is not None else {},
             scatter_corr is None,
             html.Div("No data within highlight criteria")

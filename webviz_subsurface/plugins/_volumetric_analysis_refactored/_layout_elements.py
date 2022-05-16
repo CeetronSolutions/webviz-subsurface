@@ -85,6 +85,8 @@ class ElementIds:
         class QCPlots:
             ID = "qc_plots"
 
+            ROW = "row"
+
             PLOT_DIFF_VS_REAL = "diff_vs_real"
             PLOT_DIFF_VS_RESPONSE = "diff_vs_response"
             PLOT_CORRELATION = "correlation"

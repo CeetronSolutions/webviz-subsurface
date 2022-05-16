@@ -703,7 +703,7 @@ def set_plugin_callbacks(
                 .get_unique_id()
                 .to_string(),
                 "selector": ALL,
-                "type": "fipqc",
+                "type": "fipqc_wrapper",
             },
             "style"
         ),
@@ -714,7 +714,7 @@ def set_plugin_callbacks(
                 .get_unique_id()
                 .to_string(),
                 "selector": ALL,
-                "type": "fipqc",
+                "type": "fipqc_wrapper",
             },
             "id"
         )
@@ -732,13 +732,13 @@ def set_plugin_callbacks(
 
         output = {}
         for selector in ["FIPNUM", "SET"]:
-            output[selector] = { "display": "" if active_view_id in fip_file_views else "none" }
+            output[selector] = { "style": { "display": "" if active_view_id in fip_file_views else "none" } }
 
         return update_relevant_components(
                 id_list=filter_ids,
                 update_info=[
                     {
-                        "new_value": values.get("multi", no_update),
+                        "new_value": values.get("style", no_update),
                         "conditions": {"selector": selector},
                     }
                     for selector, values in output.items()

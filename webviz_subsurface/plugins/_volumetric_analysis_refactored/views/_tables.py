@@ -113,6 +113,9 @@ class Tables(ViewABC):
         def _update_table(
             selections: dict, filters: dict
         ) -> Tuple[Component, bool, Component, bool]:
+
+            filters = { key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"] }
+
             table_groups = (
                 ["ENSEMBLE", "REAL"]
                 if selections["Table type"] == "Statistics table"

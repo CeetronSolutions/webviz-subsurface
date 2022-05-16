@@ -172,7 +172,7 @@ class Filters(SettingsGroupABC):
             ],
         )
 
-    def fip_filter_dropdowns(self) -> List[html.Div]:
+    def fip_filter_dropdowns(self) -> html.Div:
         dropdowns: List[html.Div] = []
         if self.disjoint_set_df is not None:
             for selector in ["FIPNUM", "SET"]:
@@ -181,6 +181,7 @@ class Filters(SettingsGroupABC):
                     elements = sorted(elements, key=int)
                 dropdowns.append(
                     html.Div(
+                        id={"id": self.get_unique_id().to_string(), "selector": selector, "type": "fipqc_wrapper"},
                         children=wcc.SelectWithLabel(
                             label=selector.lower().capitalize(),
                             id={"id": self.get_unique_id().to_string(), "selector": selector, "type": "fipqc"},
@@ -191,4 +192,4 @@ class Filters(SettingsGroupABC):
                         ),
                     )
                 )
-        return dropdowns
+        return html.Div(dropdowns)
