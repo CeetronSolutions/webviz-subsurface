@@ -99,17 +99,23 @@ class DiffTableMultipleResponses(ViewABC):
             ),
             Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
-        def _update_page_ens_comp(
+        def _update_comparisons(
             selections: dict,
             filters: dict,
         ) -> Tuple[str, str, str, Component]:
             if selections is None:
                 raise PreventUpdate
 
-            return self.comparison_callback(
-                compare_on="SENSNAME_CASE"
+            compare_on = (
+                "SENSNAME_CASE"
                 if self.compare_on == "Sensitivity"
-                else "ENSEMBLE",
+                else "ENSEMBLE"
+                if self.compare_on == "Ensemble"
+                else "SOURCE"
+            )
+
+            return self.comparison_callback(
+                compare_on=compare_on,
                 selections=selections,
                 filters=filters,
             )
@@ -127,7 +133,9 @@ class DiffTableMultipleResponses(ViewABC):
         for key in ["Accept value", "Ignore <"]:
             selections[key] = selections[key] if selections[key] is not None else 0
 
-        filters = { key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"] }
+        filters = {
+            key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"]
+        }
 
         groupby = selections["Group by"] if selections["Group by"] is not None else []
 

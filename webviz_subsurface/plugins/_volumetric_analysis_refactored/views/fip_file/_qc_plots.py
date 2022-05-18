@@ -31,19 +31,15 @@ class Plot(ViewElementABC):
 
 class FipFileQCPlots(ViewABC):
     def __init__(self, disjoint_set_df: pd.DataFrame) -> None:
-        super().__init__("Custom plotting")
+        super().__init__("QC Plots")
 
         self.disjoint_set_df = disjoint_set_df
 
         column = self.add_column()
 
-        column.add_view_element(
-            Plot(), ElementIds.FipFile.QCPlots.ZONE_REGION_HEATMAP
-        )
+        column.add_view_element(Plot(), ElementIds.FipFile.QCPlots.ZONE_REGION_HEATMAP)
 
-        column.add_view_element(
-            Plot(), ElementIds.FipFile.QCPlots.ZONE_FIPNUM_HEATMAP
-        )
+        column.add_view_element(Plot(), ElementIds.FipFile.QCPlots.ZONE_FIPNUM_HEATMAP)
 
         column.add_view_element(
             Plot(), ElementIds.FipFile.QCPlots.REGION_FIPNUM_HEATMAP
@@ -51,31 +47,50 @@ class FipFileQCPlots(ViewABC):
 
     def set_callbacks(self) -> None:
         @callback(
-            Output(self.view_element(ElementIds.FipFile.QCPlots.ZONE_REGION_HEATMAP).get_unique_id().to_string(), "children"),
-            Output(self.view_element(ElementIds.FipFile.QCPlots.ZONE_FIPNUM_HEATMAP).get_unique_id().to_string(), "children"),
-            Output(self.view_element(ElementIds.FipFile.QCPlots.REGION_FIPNUM_HEATMAP).get_unique_id().to_string(), "children"),
+            Output(
+                self.view_element(ElementIds.FipFile.QCPlots.ZONE_REGION_HEATMAP)
+                .get_unique_id()
+                .to_string(),
+                "children",
+            ),
+            Output(
+                self.view_element(ElementIds.FipFile.QCPlots.ZONE_FIPNUM_HEATMAP)
+                .get_unique_id()
+                .to_string(),
+                "children",
+            ),
+            Output(
+                self.view_element(ElementIds.FipFile.QCPlots.REGION_FIPNUM_HEATMAP)
+                .get_unique_id()
+                .to_string(),
+                "children",
+            ),
             Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
         def _update_page_fipfileqc(
-            filters: dict
-            ) -> Tuple[wcc.Graph, wcc.Graph, wcc.Graph]:
-                ctx = callback_context.triggered[0]
+            filters: dict,
+        ) -> Tuple[wcc.Graph, wcc.Graph, wcc.Graph]:
+            ctx = callback_context.triggered[0]
 
-                filters = { key: filters[key] for key in filters if key in ["REGION", "ZONE", "FIPNUM", "SET"]}
+            filters = {
+                key: filters[key]
+                for key in filters
+                if key in ["REGION", "ZONE", "FIPNUM", "SET"]
+            }
 
-                df = self.disjoint_set_df[["SET", "FIPNUM", "REGION", "ZONE", "REGZONE"]]
+            df = self.disjoint_set_df[["SET", "FIPNUM", "REGION", "ZONE", "REGZONE"]]
 
-                for filt, values in filters.items():
-                    df = df.loc[df[filt].isin(values)]
+            for filt, values in filters.items():
+                df = df.loc[df[filt].isin(values)]
 
-                df = df.sort_values(by=["SET"])
+            df = df.sort_values(by=["SET"])
 
-                df["FIPNUM"] = df["FIPNUM"].astype(str)
-                return (
-                        self.create_heatmap(df=df, y="ZONE", x="REGION"),
-                        self.create_heatmap(df=df, y="ZONE", x="FIPNUM"),
-                        self.create_heatmap(df=df, y="REGION", x="FIPNUM"),
-                )
+            df["FIPNUM"] = df["FIPNUM"].astype(str)
+            return (
+                self.create_heatmap(df=df, y="ZONE", x="REGION"),
+                self.create_heatmap(df=df, y="ZONE", x="FIPNUM"),
+                self.create_heatmap(df=df, y="REGION", x="FIPNUM"),
+            )
 
     @staticmethod
     def create_heatmap(df: pd.DataFrame, y: str, x: str) -> wcc.Graph:
@@ -112,7 +127,12 @@ class FipFileQCPlots(ViewABC):
             .update_layout(
                 margin={"l": 20, "r": 20, "t": 20, "b": 20}, plot_bgcolor="white"
             )
-            .update_xaxes(title_text=x, tickangle=45, ticks="outside", **FipFileQCPlots.axis_variables())
+            .update_xaxes(
+                title_text=x,
+                tickangle=45,
+                ticks="outside",
+                **FipFileQCPlots.axis_variables(),
+            )
             .update_yaxes(title_text=y, **FipFileQCPlots.axis_variables()),
         )
 

@@ -19,7 +19,7 @@ from ...utils.table_and_figure_utils import (
     add_correlation_line,
 )
 
-from .utils import find_higlighted_real_count
+from .utils import find_higlighted_real_count, create_comparison_df
 
 
 class Plot(ViewElementABC):
@@ -117,17 +117,23 @@ class QCPlots(ViewABC):
             ),
             Input(self.get_store_unique_id(ElementIds.Stores.FILTERS), "data"),
         )
-        def _update_page_ens_comp(
+        def _update_comparisons(
             selections: dict,
             filters: dict,
         ) -> Tuple[dict, bool, dict, bool, bool, dict, bool, html.Div]:
             if selections is None:
                 raise PreventUpdate
 
-            return self.comparison_callback(
-                compare_on="SENSNAME_CASE"
+            compare_on = (
+                "SENSNAME_CASE"
                 if self.compare_on == "Sensitivity"
-                else "ENSEMBLE",
+                else "ENSEMBLE"
+                if self.compare_on == "Ensemble"
+                else "SOURCE"
+            )
+
+            return self.comparison_callback(
+                compare_on=compare_on,
                 selections=selections,
                 filters=filters,
             )
@@ -150,7 +156,9 @@ class QCPlots(ViewABC):
                 html.Div("Comparison between equal data"),
             )
 
-        filters = { key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"] }
+        filters = {
+            key: filters[key] for key in filters.keys() if key not in ["FIPNUM", "SET"]
+        }
 
         # Handle None in highlight criteria input
         for key in ["Accept value", "Ignore <"]:
@@ -167,7 +175,7 @@ class QCPlots(ViewABC):
             groupby.append("FLUID_ZONE")
 
         if compare_on == "SOURCE" or "REAL" in groupby:
-            diffdf_real = self.create_comparison_df(
+            diffdf_real = create_comparison_df(
                 self.volumes_model,
                 compare_on=compare_on,
                 selections=selections,
@@ -178,7 +186,7 @@ class QCPlots(ViewABC):
             )
 
         if "REAL" not in groupby:
-            diffdf_group = self.create_comparison_df(
+            diffdf_group = create_comparison_df(
                 self.volumes_model,
                 compare_on=compare_on,
                 selections=selections,
@@ -274,87 +282,6 @@ class QCPlots(ViewABC):
                 ]
             ),
         )
-
-    # pylint: disable=too-many-arguments
-    # pylint: disable=too-many-locals
-    def create_comparison_df(
-        self,
-        volumemodel: InplaceVolumesModel,
-        compare_on: str,
-        responses: list,
-        selections: dict,
-        filters: dict,
-        groups: list,
-        abssort_on: str = "diff (%)",
-        rename_diff_col: bool = False,
-    ) -> pd.DataFrame:
-
-        filters_subset = {
-            key: value for key, value in filters.items() if key in ["REGION", "ZONE"]
-        }
-
-        resp = selections["Response"]
-        adiitional_groups = [
-            x
-            for x in ["SOURCE", "ENSEMBLE", "SENSNAME_CASE"]
-            if x in volumemodel.selectors
-        ]
-        groups = groups + adiitional_groups
-        df = volumemodel.get_df(filters_subset, groups=groups)
-
-        # filter dataframe and set values to compare against
-        if not "|" in selections["value1"]:
-            value1, value2 = selections["value1"], selections["value2"]
-            df = df[df[compare_on].isin([value1, value2])]
-        else:
-            ens1, sens1 = selections["value1"].split("|")
-            ens2, sens2 = selections["value2"].split("|")
-            if ens1 == ens2:
-                compare_on = "SENSNAME_CASE"
-            value1, value2 = (sens1, sens2) if ens1 == ens2 else (ens1, ens2)
-
-            df = df[
-                ((df["ENSEMBLE"] == ens1) & (df["SENSNAME_CASE"] == sens1))
-                | ((df["ENSEMBLE"] == ens2) & (df["SENSNAME_CASE"] == sens2))
-            ]
-
-        # if no data left, or one of the selected SOURCE/ENSEMBLE is not present
-        # in the dataframe after filtering, return empty dataframe
-        if df.empty or any(x not in df[compare_on].values for x in [value1, value2]):
-            return pd.DataFrame()
-
-        df = df.loc[:, groups + responses].pivot_table(
-            columns=compare_on,
-            index=[x for x in groups if x not in [compare_on, "SENSNAME_CASE"]],
-        )
-        responses = [x for x in responses if x in df]
-        for col in responses:
-            df[col, "diff"] = df[col][value2] - df[col][value1]
-            df[col, "diff (%)"] = ((df[col][value2] / df[col][value1]) - 1) * 100
-            df.loc[df[col]["diff"] == 0, (col, "diff (%)")] = 0
-        df = df[responses].replace([np.inf, -np.inf], np.nan).reset_index()
-
-        # remove rows where the selected response is nan
-        # can happen for properties where the volume columns are 0
-        df = df.loc[~((df[resp][value1].isna()) & (df[resp][value2].isna()))]
-        if selections["Remove zeros"]:
-            df = df.loc[~((df[resp]["diff"] == 0) & (df[resp][value1] == 0))]
-
-        df["highlighted"] = self.compute_highlighted_col(df, resp, value1, selections)
-        df.columns = df.columns.map(" ".join).str.strip(" ")
-
-        # remove BO∕BG columns if they are nan and drop SOURCE/ENSMEBLE column
-        dropcols = [
-            x for x in df.columns[df.isna().all()] if x.split(" ")[0] in ["BO", "BG"]
-        ] + adiitional_groups
-        df = df[[x for x in df.columns if x not in dropcols]]
-
-        if rename_diff_col:
-            df = df.rename(
-                columns={f"{resp} diff": "diff", f"{resp} diff (%)": "diff (%)"}
-            )
-        df = self.add_fluid_zone_column(df, filters_subset)
-        return df.sort_values(by=[abssort_on], key=abs, ascending=False)
 
     def create_scatterfig(
         self,

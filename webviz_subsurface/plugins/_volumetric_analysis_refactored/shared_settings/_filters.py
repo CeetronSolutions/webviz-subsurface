@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import pandas as pd
 
@@ -14,7 +14,11 @@ from webviz_subsurface._models.inplace_volumes_model import InplaceVolumesModel
 
 
 class Filters(SettingsGroupABC):
-    def __init__(self, volumes_model: InplaceVolumesModel, disjoint_set_df: Optional[pd.DataFrame]) -> None:
+    def __init__(
+        self,
+        volumes_model: InplaceVolumesModel,
+        disjoint_set_df: Optional[pd.DataFrame],
+    ) -> None:
         super().__init__("Filters")
         self.volumes_model = volumes_model
         self.disjoint_set_df = disjoint_set_df
@@ -31,7 +35,7 @@ class Filters(SettingsGroupABC):
         self,
     ) -> html.Div:
         """Makes dropdowns for each selector"""
-        dropdowns_layout: List[html.Div] = []
+        dropdowns_layout: List[Union[html.Div, html.Span]] = []
         hide_selectors = ["SENSNAME", "SENSTYPE", "SENSCASE"]
 
         selectors = [
@@ -48,10 +52,12 @@ class Filters(SettingsGroupABC):
                     hide=selector in hide_selectors,
                 )
             )
+
         # Make region filters
         dropdowns_layout.append(
             html.Span("Region filters: ", style={"font-weight": "bold"})
         )
+
         if all(
             x in self.volumes_model.region_selectors
             for x in ["FIPNUM", "ZONE", "REGION"]
@@ -100,7 +106,11 @@ class Filters(SettingsGroupABC):
 
     def fipnum_vs_zone_region_switch(self) -> wcc.RadioItems:
         return wcc.RadioItems(
-            id={"id": self.get_unique_id().to_string(), "element": "region-selector"},
+            id={
+                "id": self.get_unique_id().to_string(),
+                "element": "region-selector",
+                "wrapper": "region-selector",
+            },
             options=[
                 {"label": "Region∕Zone", "value": "regzone"},
                 {"label": "Fipnum", "value": "fipnum"},
@@ -112,6 +122,11 @@ class Filters(SettingsGroupABC):
     def realization_filters(self) -> html.Div:
         reals = self.volumes_model.realizations
         return html.Div(
+            id={
+                "id": self.get_unique_id().to_string(),
+                "wrapper": "REAL",
+                "type": "REAL",
+            },
             style={"margin-top": "15px"},
             children=[
                 html.Div(
@@ -181,10 +196,18 @@ class Filters(SettingsGroupABC):
                     elements = sorted(elements, key=int)
                 dropdowns.append(
                     html.Div(
-                        id={"id": self.get_unique_id().to_string(), "selector": selector, "type": "fipqc_wrapper"},
+                        id={
+                            "id": self.get_unique_id().to_string(),
+                            "wrapper": selector,
+                            "type": "undef",
+                        },
                         children=wcc.SelectWithLabel(
                             label=selector.lower().capitalize(),
-                            id={"id": self.get_unique_id().to_string(), "selector": selector, "type": "fipqc"},
+                            id={
+                                "id": self.get_unique_id().to_string(),
+                                "selector": selector,
+                                "type": "undef",
+                            },
                             options=[{"label": i, "value": i} for i in elements],
                             value=elements,
                             multi=True,

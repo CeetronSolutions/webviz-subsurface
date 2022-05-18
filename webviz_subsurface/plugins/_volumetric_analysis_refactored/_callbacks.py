@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from dash import ALL, Input, Output, State, callback, callback_context, no_update
 from dash.exceptions import PreventUpdate
@@ -703,55 +703,6 @@ def set_plugin_callbacks(
                 .get_unique_id()
                 .to_string(),
                 "selector": ALL,
-                "type": "fipqc_wrapper",
-            },
-            "style"
-        ),
-        Input("webviz-content-manager", "activeViewId"),
-        State(
-            {
-                "id": plugin.shared_settings_group(ElementIds.SharedSettings.Filters.ID)
-                .get_unique_id()
-                .to_string(),
-                "selector": ALL,
-                "type": "fipqc_wrapper",
-            },
-            "id"
-        )
-    )
-    def _update_filter_visibility(
-        active_view_id: str,
-        filter_ids: list
-    ) -> list:
-        fip_file_views = list(
-            map(
-                lambda x: x[1].get_unique_id().to_string(),
-                plugin.views(ElementIds.FipFile.NAME),
-            )
-        )
-
-        output = {}
-        for selector in ["FIPNUM", "SET"]:
-            output[selector] = { "style": { "display": "" if active_view_id in fip_file_views else "none" } }
-
-        return update_relevant_components(
-                id_list=filter_ids,
-                update_info=[
-                    {
-                        "new_value": values.get("style", no_update),
-                        "conditions": {"selector": selector},
-                    }
-                    for selector, values in output.items()
-                ],
-            )
-
-    @callback(
-        Output(
-            {
-                "id": plugin.shared_settings_group(ElementIds.SharedSettings.Filters.ID)
-                .get_unique_id()
-                .to_string(),
-                "selector": ALL,
                 "type": "undef",
             },
             "multi",
@@ -1049,6 +1000,16 @@ def set_plugin_callbacks(
             },
             "style",
         ),
+        Output(
+            {
+                "id": plugin.shared_settings_group(ElementIds.SharedSettings.Filters.ID)
+                .get_unique_id()
+                .to_string(),
+                "wrapper": "REAL",
+                "type": "REAL",
+            },
+            "style",
+        ),
         Input("webviz-content-manager", "activeViewId"),
         State(
             {
@@ -1072,7 +1033,7 @@ def set_plugin_callbacks(
         ),
     )
     def _hide_filters(active_view_id: str, filter_ids: list, elements: list) -> tuple:
-        hide_selectors = ["SENSNAME", "SENSTYPE", "SENSCASE"]
+        hide_selectors = ["SENSNAME", "SENSTYPE", "SENSCASE", "FIPNUM", "SET"]
 
         if active_view_id in list(
             map(
@@ -1099,11 +1060,24 @@ def set_plugin_callbacks(
         ):
             hide_selectors += ["ENSEMBLE", "FLUID_ZONE", "SENSNAME_CASE"]
 
-        return tuple(
-            {"display": "none"}
-            if (filter["wrapper"] in hide_selectors or len(options) <= 1)
-            else {"display": ""}
-            for filter, options in zip(filter_ids, elements)
+        if active_view_id in list(
+            map(
+                lambda x: x[1].get_unique_id().to_string(),
+                plugin.views(ElementIds.FipFile.NAME),
+            )
+        ):
+            hide_selectors.remove("FIPNUM")
+            hide_selectors.remove("SET")
+            hide_selectors += ["ENSEMBLE", "FLUID_ZONE", "REAL", "SOURCE"]
+
+        return (
+            tuple(
+                {"display": "none"}
+                if (filter["wrapper"] in hide_selectors or len(options) <= 1)
+                else {"display": ""}
+                for filter, options in zip(filter_ids, elements)
+            ),
+            tuple({"display": "none" if "REAL" in hide_selectors else ""}),
         )
 
     @callback(

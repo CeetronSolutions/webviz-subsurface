@@ -40,9 +40,7 @@ from .views.comparison import (
     QCPlots,
 )
 
-from .views.fip_file import (
-    FipFileQCPlots
-)
+from .views.fip_file import FipFileQCPlots, FipFileTable
 
 from .views.comparison.shared_settings import Controls, Settings as ComparisonSettings
 
@@ -469,7 +467,16 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 )
 
         if self.disjoint_set_df is not None:
-            self.add_view(FipFileQCPlots(self.disjoint_set_df), ElementIds.FipFile.QCPlots.ID, ElementIds.FipFile.NAME)
+            self.add_view(
+                FipFileQCPlots(self.disjoint_set_df),
+                ElementIds.FipFile.QCPlots.ID,
+                ElementIds.FipFile.NAME,
+            )
+            self.add_view(
+                FipFileTable(self.disjoint_set_df),
+                ElementIds.FipFile.Table.ID,
+                ElementIds.FipFile.NAME,
+            )
 
     def _set_callbacks(self) -> None:
         set_plugin_callbacks(self, self.volumes_model)

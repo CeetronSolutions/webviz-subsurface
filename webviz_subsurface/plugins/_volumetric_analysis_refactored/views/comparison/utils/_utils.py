@@ -13,12 +13,12 @@ from ....utils.table_and_figure_utils import (
 
 from ....utils.utils import move_to_end_of_list
 
-def add_fluid_zone_column(
-    dframe: pd.DataFrame, filters: dict
-) -> pd.DataFrame:
+
+def add_fluid_zone_column(dframe: pd.DataFrame, filters: dict) -> pd.DataFrame:
     if "FLUID_ZONE" not in dframe and "FLUID_ZONE" in filters:
         dframe["FLUID_ZONE"] = (" + ").join(filters["FLUID_ZONE"])
     return dframe
+
 
 def compute_highlighted_col(
     df: pd.DataFrame, response: str, value1: str, selections: dict
@@ -27,6 +27,7 @@ def compute_highlighted_col(
         df[response]["diff (%)"].abs() > selections["Accept value"]
     )
     return np.where(highlight_mask, "yes", "no")
+
 
 def create_comparison_df(
     volumemodel: InplaceVolumesModel,
@@ -39,17 +40,13 @@ def create_comparison_df(
     rename_diff_col: bool = False,
 ) -> pd.DataFrame:
 
-    filters_subset = {
-        key: value for key, value in filters.items() if key in ["REGION", "ZONE"]
-    }
+    filters_subset = filters
 
     resp = selections["Response"]
-    adiitional_groups = [
-        x
-        for x in ["SOURCE", "ENSEMBLE", "SENSNAME_CASE"]
-        if x in volumemodel.selectors
+    additional_groups = [
+        x for x in ["SOURCE", "ENSEMBLE", "SENSNAME_CASE"] if x in volumemodel.selectors
     ]
-    groups = groups + adiitional_groups
+    groups = groups + additional_groups
     df = volumemodel.get_df(filters_subset, groups=groups)
 
     # filter dataframe and set values to compare against
@@ -96,15 +93,14 @@ def create_comparison_df(
     # remove BO∕BG columns if they are nan and drop SOURCE/ENSMEBLE column
     dropcols = [
         x for x in df.columns[df.isna().all()] if x.split(" ")[0] in ["BO", "BG"]
-    ] + adiitional_groups
+    ] + additional_groups
     df = df[[x for x in df.columns if x not in dropcols]]
 
     if rename_diff_col:
-        df = df.rename(
-            columns={f"{resp} diff": "diff", f"{resp} diff (%)": "diff (%)"}
-        )
+        df = df.rename(columns={f"{resp} diff": "diff", f"{resp} diff (%)": "diff (%)"})
     df = add_fluid_zone_column(df, filters_subset)
     return df.sort_values(by=[abssort_on], key=abs, ascending=False)
+
 
 def find_higlighted_real_count(
     row: pd.Series, df_per_real: pd.DataFrame, groups: list
@@ -112,6 +108,7 @@ def find_higlighted_real_count(
     query = " & ".join([f"{col}=='{row[col]}'" for col in groups])
     result = df_per_real.query(query) if groups else df_per_real
     return str(len(result[result["highlighted"] == "yes"]))
+
 
 def create_comparison_table(
     tabletype: str,

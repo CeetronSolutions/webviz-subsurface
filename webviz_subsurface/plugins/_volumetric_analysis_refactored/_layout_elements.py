@@ -123,6 +123,13 @@ class ElementIds:
             ZONE_FIPNUM_HEATMAP = "zone_fipnum_heatmap"
             REGION_FIPNUM_HEATMAP = "region_fipnum_heatmap"
 
+        class Table:
+            ID = "fip_file_table"
+            TABLE = "table"
+
+            class Controls:
+                ID = "controls"
+                GROUP_TABLE_CHECKBOX = "group_table_checkbox"
 
     class TornadoPlots:
         NAME = "Tornadoplots"
