@@ -157,4 +157,4 @@ class ElementIds:
 
     class SharedSettings:
         class Filters:
-            ID = "inplace_distributions_filters"
+            ID = "filters"

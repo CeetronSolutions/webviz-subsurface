@@ -924,6 +924,11 @@ def set_plugin_callbacks(
                 lambda x: x[1].get_unique_id().to_string(),
                 plugin.views(ElementIds.Comparison.EnsembleComparison.NAME),
             )
+        ) + list(
+            map(
+                lambda x: x[1].get_unique_id().to_string(),
+                plugin.views(ElementIds.Comparison.SensitivityComparison.NAME),
+            )
         ):
             selected_data = ["SENSNAME_CASE", "ENSEMBLE"]
         if active_view_id in list(
@@ -989,7 +994,7 @@ def set_plugin_callbacks(
             ),
         )
 
-    @callback(
+    outputs = [
         Output(
             {
                 "id": plugin.shared_settings_group(ElementIds.SharedSettings.Filters.ID)
@@ -1010,6 +1015,26 @@ def set_plugin_callbacks(
             },
             "style",
         ),
+    ]
+
+    if all(x in volumes_model.region_selectors for x in ["FIPNUM", "ZONE", "REGION"]):
+        outputs += [
+            Output(
+                {
+                    "id": plugin.shared_settings_group(
+                        ElementIds.SharedSettings.Filters.ID
+                    )
+                    .get_unique_id()
+                    .to_string(),
+                    "wrapper": "REGION_SELECTOR",
+                    "element": "region-selector",
+                },
+                "style",
+            )
+        ]
+
+    @callback(
+        outputs,
         Input("webviz-content-manager", "activeViewId"),
         State(
             {
@@ -1033,7 +1058,7 @@ def set_plugin_callbacks(
         ),
     )
     def _hide_filters(active_view_id: str, filter_ids: list, elements: list) -> tuple:
-        hide_selectors = ["SENSNAME", "SENSTYPE", "SENSCASE", "FIPNUM", "SET"]
+        hide_wrappers = ["SENSNAME", "SENSTYPE", "SENSCASE", "FIPNUM", "SET"]
 
         if active_view_id in list(
             map(
@@ -1041,7 +1066,7 @@ def set_plugin_callbacks(
                 plugin.views(ElementIds.TornadoPlots.NAME),
             )
         ):
-            hide_selectors += ["SENSNAME_CASE"]
+            hide_wrappers += ["SENSNAME_CASE"]
 
         if active_view_id in list(
             map(
@@ -1049,7 +1074,7 @@ def set_plugin_callbacks(
                 plugin.views(ElementIds.Comparison.SourceComparison.NAME),
             )
         ):
-            hide_selectors += ["SOURCE", "FLUID_ZONE"]
+            hide_wrappers += ["SOURCE", "FLUID_ZONE"]
 
         if active_view_id in list(
             map(
@@ -1058,7 +1083,7 @@ def set_plugin_callbacks(
                 + plugin.views(ElementIds.Comparison.SensitivityComparison.NAME),
             )
         ):
-            hide_selectors += ["ENSEMBLE", "FLUID_ZONE", "SENSNAME_CASE"]
+            hide_wrappers += ["ENSEMBLE", "FLUID_ZONE", "SENSNAME_CASE"]
 
         if active_view_id in list(
             map(
@@ -1066,19 +1091,34 @@ def set_plugin_callbacks(
                 plugin.views(ElementIds.FipFile.NAME),
             )
         ):
-            hide_selectors.remove("FIPNUM")
-            hide_selectors.remove("SET")
-            hide_selectors += ["ENSEMBLE", "FLUID_ZONE", "REAL", "SOURCE"]
+            hide_wrappers.remove("FIPNUM")
+            hide_wrappers.remove("SET")
+            hide_wrappers += [
+                "ENSEMBLE",
+                "FLUID_ZONE",
+                "REAL",
+                "SOURCE",
+                "REGION_SELECTOR",
+            ]
 
-        return (
+        outputs = [
             tuple(
                 {"display": "none"}
-                if (filter["wrapper"] in hide_selectors or len(options) <= 1)
+                if (filter["wrapper"] in hide_wrappers or len(options) <= 1)
                 else {"display": ""}
                 for filter, options in zip(filter_ids, elements)
             ),
-            tuple({"display": "none" if "REAL" in hide_selectors else ""}),
-        )
+            {"display": ("none" if "REAL" in hide_wrappers else "")},
+        ]
+
+        if all(
+            x in volumes_model.region_selectors for x in ["FIPNUM", "ZONE", "REGION"]
+        ):
+            outputs.append(
+                {"display": ("none" if "REGION_SELECTOR" in hide_wrappers else "")}
+            )
+
+        return tuple(outputs)
 
     @callback(
         Output(

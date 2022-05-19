@@ -109,7 +109,7 @@ class Filters(SettingsGroupABC):
             id={
                 "id": self.get_unique_id().to_string(),
                 "element": "region-selector",
-                "wrapper": "region-selector",
+                "wrapper": "REGION_SELECTOR",
             },
             options=[
                 {"label": "Region∕Zone", "value": "regzone"},

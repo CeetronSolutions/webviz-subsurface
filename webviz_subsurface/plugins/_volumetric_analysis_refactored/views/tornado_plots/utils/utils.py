@@ -184,7 +184,6 @@ def tornado_plots_layout(
                 children=[bottom_display],
                 hidden=bottom_display is None,
             )
-
         ]
     )
 

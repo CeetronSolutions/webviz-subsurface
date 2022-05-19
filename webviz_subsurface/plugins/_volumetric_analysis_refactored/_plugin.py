@@ -222,6 +222,8 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                 ],
             )
 
+            self.set_active_view_id(ElementIds.TornadoPlots.Custom.ID)
+
         if len(self.volumes_model.sources) > 1:
             self.add_store(
                 ElementIds.Comparison.SourceComparison.ID,
@@ -300,6 +302,10 @@ class VolumetricAnalysisRefactored(WebvizPluginABC):
                     .get_unique_id()
                     .to_string(),
                 ],
+            )
+
+            self.set_active_view_id(
+                f"{ElementIds.Comparison.SourceComparison.ID}-{ElementIds.Comparison.QCPlots.ID}"
             )
 
         if len(self.volumes_model.ensembles) > 1 or self.volumes_model.sensrun:
