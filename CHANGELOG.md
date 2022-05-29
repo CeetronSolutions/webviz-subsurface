@@ -7,12 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+### Changed
+
+- [#1020](https://github.com/equinor/webviz-subsurface/pull/1020) - `WellAnalysis` - Several improvements and bug fixes. F.ex a well attribute filter in the well overview plots and the possibility to see production only after a given date.
+- [#1017](https://github.com/equinor/webviz-subsurface/pull/1017) - `SeismicMisfit` - Added support for X,Y,Z,ID header in polygon files and improved error handling when inconsistency between obs and sim data.
+- [#1030](https://github.com/equinor/webviz-subsurface/pull/1030) - Implemented new summary data provider (using `.arrow` files) for the `ParameterResponseCorrelation` plugin.
+- [#1041](https://github.com/equinor/webviz-subsurface/pull/1041) - Increased maximum number of selected vectors in `SimulationTimeSeries` plugin.
+
+## [0.2.13] - 2022-05-05
+
+### Added
+
+- [#938](https://github.com/equinor/webviz-subsurface/pull/938) - `ProdMisfit` - New plugin for well production misfit visualization. Features visualization of production misfit at selected dates, production coverage at selected dates and heatmap representation of ensemble mean misfit for selected dates.
+- [#1013](https://github.com/equinor/webviz-subsurface/pull/1013) - `MapViewerFMU` - Added option to specify the folder where maps are located (relative to runpath in each realization).
+- [#936](https://github.com/equinor/webviz-subsurface/pull/936) - `ParameterResponseCorrelation` - Added options to interactively change correlation method and response aggregation, correlation cut-off and parameter filter.
+
+### Changed
+
+- [#1015](https://github.com/equinor/webviz-subsurface/pull/1015) - Improved error reporting for `.arrow` files where dates are not monotonically increasing.
+
+### Fixed
+
+- [#1014](https://github.com/equinor/webviz-subsurface/pull/1014) - `ParameterResponseCorrelation` and `BhpQc` - fix bug in range slider. `VolumetricAnalysis` - prevent "Totals" volumes (if present) beeing included in the sum when comparing static and dynamic volumes, and do not include non-numeric columns as volumetric responses.
+
 ## [0.2.12] - 2022-04-07
- 
+
 ### Added
 
 - [#981](https://github.com/equinor/webviz-subsurface/pull/981) - `WellAnalysis` - New plugin well analysis. One tab for well production overview plots and one for well control mode and network analysis.
-- [#987](https://github.com/equinor/webviz-subsurface/pull/987) - `SwatinitQC` - New plugin for QC of Water Initialization in Eclipse runs where the `SWATINIT` keyword has been used. 
+- [#987](https://github.com/equinor/webviz-subsurface/pull/987) - `SwatinitQC` - New plugin for QC of Water Initialization in Eclipse runs where the `SWATINIT` keyword has been used.
 - [#988](https://github.com/equinor/webviz-subsurface/pull/988) - `ParameterAnalysis` and `PropertyStatistics` - Switched to the VectorSelector component, and other various improvements.
 
 ### Fixed
@@ -21,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [#988](https://github.com/equinor/webviz-subsurface/pull/988) - `ParameterAnalysis` and `PropertyStatistics`- Changed to reading unsmry data from `.arrow` files and deprecated the usage of aggregated csvfiles as input. 
+- [#988](https://github.com/equinor/webviz-subsurface/pull/988) - `ParameterAnalysis` and `PropertyStatistics`- Changed to reading unsmry data from `.arrow` files and deprecated the usage of aggregated csvfiles as input.
 - [#986](https://github.com/equinor/webviz-subsurface/pull/986) - Avoid copying surfaces when using `MapViewerFMU` in non-portable mode.
 
 ## [0.2.11] - 2022-03-14
