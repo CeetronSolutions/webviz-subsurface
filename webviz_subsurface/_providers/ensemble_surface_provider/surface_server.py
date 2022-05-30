@@ -59,9 +59,7 @@ class SurfaceMeta:
 
 class SurfaceServer:
     def __init__(self, app: Dash) -> None:
-        cache_dir = (
-            WEBVIZ_INSTANCE_INFO.storage_folder / f"SurfaceServer_filecache_{uuid4()}"
-        )
+        cache_dir = WEBVIZ_INSTANCE_INFO.storage_folder / "SurfaceServer_filecache"
         LOGGER.debug(f"Setting up file cache in: {cache_dir}")
         self._image_cache = flask_caching.Cache(
             config={
@@ -71,6 +69,7 @@ class SurfaceServer:
             }
         )
         self._image_cache.init_app(app.server)
+        self._image_cache.clear()
 
         self._setup_url_rule(app)
 

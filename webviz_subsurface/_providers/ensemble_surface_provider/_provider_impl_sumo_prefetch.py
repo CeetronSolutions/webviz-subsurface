@@ -37,7 +37,7 @@ class Col:
     DATESTR = "datestr"
 
 
-class ProviderImplSumo(EnsembleSurfaceProvider):
+class ProviderImplSumoPrefetch(EnsembleSurfaceProvider):
     def __init__(
         self,
         provider_dir: Path,
@@ -107,7 +107,7 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
         field_name: str,
         case_name: str,
         iteration_id: str,
-    ) -> Optional["ProviderImplSumo"]:
+    ) -> Optional["ProviderImplSumoPrefetch"]:
 
         sumo = Explorer(env="dev", interactive=True)
         case_collection = sumo.get_cases(fields=[field_name])
@@ -123,7 +123,9 @@ class ProviderImplSumo(EnsembleSurfaceProvider):
             )
 
         provider_dir = storage_dir / storage_key
-        return ProviderImplSumo(provider_dir, sumo_id_of_case, case_name, iteration_id)
+        return ProviderImplSumoPrefetch(
+            provider_dir, sumo_id_of_case, case_name, iteration_id
+        )
 
     def provider_id(self) -> str:
         return self._provider_id

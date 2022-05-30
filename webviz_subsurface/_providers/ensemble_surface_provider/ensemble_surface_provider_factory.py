@@ -11,7 +11,8 @@ from webviz_config.webviz_instance_info import WebvizRunMode
 from webviz_subsurface._utils.perf_timer import PerfTimer
 
 from ._provider_impl_file import ProviderImplFile
-from ._provider_impl_sumo import ProviderImplSumo
+from ._provider_impl_sumo_prefetch import ProviderImplSumoPrefetch
+from ._provider_impl_sumo_on_demand import ProviderImplSumoOnDemand
 from ._surface_discovery import (
     discover_observed_surface_files,
     discover_per_realization_surface_files,
@@ -120,14 +121,36 @@ class EnsembleSurfaceProviderFactory(WebvizFactory):
 
         return provider
 
-    def create_from_sumo(
+    def create_from_sumo_prefetch(
         self, field_name: str, case_name: str, iteration_id: str
     ) -> EnsembleSurfaceProvider:
         timer = PerfTimer()
 
         string_to_hash = f"{field_name}__{case_name}__{case_name}"
-        storage_key = f"sumo__{_make_hash_string(string_to_hash)}"
-        provider = ProviderImplSumo.from_sumo(
+        storage_key = f"sumo_prefetch__{_make_hash_string(string_to_hash)}"
+        provider = ProviderImplSumoPrefetch.from_sumo(
+            self._storage_dir, storage_key, field_name, case_name, iteration_id
+        )
+
+        if not provider:
+            raise ValueError(
+                f"Failed to create sumo surface provider for {field_name}, {case_name}, {case_name}"
+            )
+
+        LOGGER.info(
+            f"Created sumo surface provider for {field_name}, {case_name}, {case_name} in {timer.elapsed_s():.2f}s"
+        )
+
+        return provider
+
+    def create_from_sumo_on_demand(
+        self, field_name: str, case_name: str, iteration_id: str
+    ) -> EnsembleSurfaceProvider:
+        timer = PerfTimer()
+
+        string_to_hash = f"{field_name}__{case_name}__{case_name}"
+        storage_key = f"sumo_ondemand__{_make_hash_string(string_to_hash)}"
+        provider = ProviderImplSumoOnDemand.from_sumo(
             self._storage_dir, storage_key, field_name, case_name, iteration_id
         )
 

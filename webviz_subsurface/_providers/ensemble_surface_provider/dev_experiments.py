@@ -41,7 +41,7 @@ def main() -> None:
     # provider: EnsembleSurfaceProvider = factory.create_from_ensemble_surface_files(
     #     ensemble_path
     # )
-    provider: EnsembleSurfaceProvider = factory.create_from_sumo(
+    provider: EnsembleSurfaceProvider = factory.create_from_sumo_prefetch(
         field_name="DROGON", case_name="21.x.0.dev_2022-02-03_rc7", iteration_id="0"
     )
 

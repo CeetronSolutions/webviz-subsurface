@@ -47,6 +47,7 @@ setup(
             "InplaceVolumesOneByOne = webviz_subsurface.plugins:InplaceVolumesOneByOne",
             "LinePlotterFMU = webviz_subsurface.plugins:LinePlotterFMU",
             "MapViewerFMU = webviz_subsurface.plugins:MapViewerFMU",
+            "MapViewerSUMO = webviz_subsurface.plugins:MapViewerSUMO",
             "MorrisPlot = webviz_subsurface.plugins:MorrisPlot",
             "ParameterAnalysis = webviz_subsurface.plugins:ParameterAnalysis",
             "ParameterCorrelation = webviz_subsurface.plugins:ParameterCorrelation",
