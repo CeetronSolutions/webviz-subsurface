@@ -35,7 +35,7 @@ class TableControls(SettingsGroupABC):
 
     def layout(self) -> Component:
         return wcc.Checklist(
-            id=self.register_component_uuid(
+            id=self.register_component_unique_id(
                 ElementIds.FipFile.Table.Controls.GROUP_TABLE_CHECKBOX
             ),
             options=[
